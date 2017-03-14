@@ -9,31 +9,41 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <list>
+#include <unistd.h>
+#include <fcntl.h>
+
 #include "http_fetcher.h"		/* Must include this to use HTTP Fetcher */
 #include "tools.h"
 #include "deezer.h"
+#include "main.h"
 
-char 		gToken[128];
-uint32_t	gUser;
-std::list<peeAlbum*>*   gAlbums;
-std::list<peePlaylist*>*   gPlaylist;
+
+stAppContext appContext;
+
+
+int guiLaunch();
 
 int main(int argc, char *argv[]) {
 
 
+
 	// First of all we retrieve user id and token
-	gUser=toolsGetUser();
-	toolsGetToken(gToken);
+	appContext.gUser=toolsGetUser();
+	toolsGetToken(appContext.gToken);
 
 	// fetch album list
-	gAlbums=toolsGetUserAlbums(gUser);
-	gPlaylist=toolsGetUserPlaylists(gUser);
+	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
+	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
 
-	toolsPrintAlbums(gAlbums);
-	toolsPrintPlaylists(gPlaylist);
+	toolsPrintAlbums(appContext.Albums);
+	toolsPrintPlaylists(appContext.Playlist);
 
-	deezerLaunch(gToken);
+	guiLaunch();
 
-	while(!toolsGetNext());
+	deezerLaunch(appContext.gToken);
+
+	while(!toolsGetNext(&appContext));
 }
+
+
 

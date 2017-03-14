@@ -7,18 +7,24 @@
 
 #ifndef INC_TOOLS_H_
 #define INC_TOOLS_H_
-#include <list>
+#include <vector>
 #include "peeAlbum.h"
 #include "peePlaylist.h"
+#include "main.h"
+
+
+
+
 
 
 uint32_t  toolsGetUser();
 void toolsGetToken(char* pToken);
 
-std::list<peeAlbum*>* toolsGetUserAlbums(uint32_t userId);
-std::list<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId);
-void toolsPrintAlbums(std::list<peeAlbum*>* pAlbum);
-void toolsPrintPlaylists(std::list<peePlaylist*>* pPlaylist);
-int toolsGetNext();
+std::vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId);
+std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId);
+void toolsPrintAlbums(std::vector<peeAlbum*>* pAlbum);
+void toolsPrintPlaylists(std::vector<peePlaylist*>* pPlaylist);
+int toolsGetNext(stAppContext* pContext);
+int toolsGetInput(stMouse* pMouse);
 
 #endif /* INC_TOOLS_H_ */

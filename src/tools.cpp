@@ -7,13 +7,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <list>
+#include <vector>
+#include <linux/input.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include "tinyxml2.h"
 #include "http_fetcher.h"
 #include "peeAlbum.h"
 #include "peePlaylist.h"
 #include "deezer.h"
+#include "tools.h"
+#include "main.h"
 
 using namespace tinyxml2;
 using namespace std;
@@ -121,8 +126,8 @@ char * toolsGetHtml(char *url)
  *
  *
  */
-list<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
-		{
+vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
+				{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -134,7 +139,7 @@ list<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 	free(fileBuf);
 	XMLNode* AlbumNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "album");
 
-	list<peeAlbum*>* retAlbum =new std::list<peeAlbum*>;
+	vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
 
 	while(AlbumNode!=NULL)
 	{
@@ -165,10 +170,10 @@ list<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 	}
 
 	return retAlbum;
-		}
+				}
 
-std::list<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
-														{
+std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
+																{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -181,7 +186,7 @@ std::list<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 
 	XMLNode* AlbumNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "playlist");
 
-	list<peePlaylist*>* retPlaylist =new std::list<peePlaylist*>;
+	vector<peePlaylist*>* retPlaylist =new std::vector<peePlaylist*>;
 
 	while(AlbumNode!=NULL)
 	{
@@ -201,19 +206,19 @@ std::list<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	}
 
 	return retPlaylist;
-														}
+																}
 
-void toolsPrintAlbums(list<peeAlbum*>* pAlbum)
+void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {
-	for (list<peeAlbum*>::iterator it = pAlbum->begin(); it != pAlbum->end(); it++)
+	for (vector<peeAlbum*>::iterator it = pAlbum->begin(); it != pAlbum->end(); it++)
 	{
 		(*it)->print();
 	}
 }
 
-void toolsPrintPlaylists(list<peePlaylist*>* pPlaylist)
+void toolsPrintPlaylists(vector<peePlaylist*>* pPlaylist)
 {
-	for (list<peePlaylist*>::iterator it = pPlaylist->begin(); it != pPlaylist->end(); it++)
+	for (vector<peePlaylist*>::iterator it = pPlaylist->begin(); it != pPlaylist->end(); it++)
 	{
 		(*it)->print();
 	}
@@ -225,7 +230,7 @@ void toolsPrintPlaylists(list<peePlaylist*>* pPlaylist)
  *
  */
 
-int toolsGetNext() {
+int toolsGetNext(stAppContext* pContext) {
 
 	char c = getchar();
 
@@ -240,73 +245,37 @@ int toolsGetNext() {
 			break;
 
 		case 'S':
-			deezerPostCommand(DEEZER_CMD_START,NULL);
+			deezerPostCommand(DEEZER_CMD_START,0);
 			break;
 		case 'R':
-			deezerPostCommand(DEEZER_CMD_RESUME,NULL);
+			deezerPostCommand(DEEZER_CMD_RESUME,0);
+			break;
+		case 's':
+			deezerPostCommand(DEEZER_CMD_STOP,0);
+			break;
+		case 'p':
+			toolsPrintAlbums(pContext->Albums);
 			break;
 		case '+':
-			deezerPostCommand(DEEZER_CMD_NEXT,NULL);
+			deezerPostCommand(DEEZER_CMD_NEXT,0);
+			break;
+		case '-':
+			deezerPostCommand(DEEZER_CMD_PREV,0);
 			break;
 		case '1':
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,303936);
+			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(0)->_id);
+			break;
+		case '2':
+			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(1)->_id);
+			break;
+		case '3':
+			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(2)->_id);
 			break;
 		default:
 			return 0;
 			break;
 	}
 	return 0;
-
-	/*switch (c) {
-		case 'S':
-			app_playback_start_or_stop();
-			break;
-
-		case 'P':
-			app_playback_pause_or_resume();
-			break;
-
-		case '+':
-			app_playback_next();
-			break;
-
-		case '-':
-			app_playback_previous();
-			break;
-
-		case 'R':
-			app_playback_toogle_repeat();
-			break;
-
-		case '?':
-			app_playback_toogle_random();
-			break;
-
-		case 'Q':
-			is_shutting_down = true;
-			app_shutdown();
-			break;
-		case '1':
-			app_change_content("dzmedia:///album/607845");
-			app_load_content();
-			break;
-		case '2':
-			app_change_content("dzmedia:///playlist/1363560485");
-			app_load_content();
-			break;
-		case '3':
-			app_change_content("dzradio:///user-743548285");
-			app_load_content();
-			break;
-		case '4':
-			app_change_content("dzmedia:///track/10287076");
-			app_load_content();
-			break;
-
-		default:
-			log(" - Command [%c] not recognised -\n",c);
-			app_commands_display();
-			break;
-	}*/
-
 }
+
+

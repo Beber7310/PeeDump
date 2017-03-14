@@ -27,10 +27,20 @@ static __inline int sleep(int s) {
 #include <deezer-player.h>
 
 static sem_t semaphorDeezer;
-static uint32_t sharedCmd;
-static uint32_t sharedArg;
+
 
 #define log(fmt, ...) printf("[%s:%d]" fmt, __FILE__, __LINE__, ##__VA_ARGS__);
+
+
+struct deezerCmd_st
+{
+	uint32_t Cmd;
+	uint32_t Arg;
+}deezerCmd[16];
+
+static int deezerCmdIndexWr=0;
+static int deezerCmdIndexRd=0;
+
 
 typedef struct {
 	int                   nb_track_played;
@@ -272,7 +282,7 @@ void app_connect_onevent_cb(dz_connect_handle handle,
 
 		case DZ_CONNECT_EVENT_USER_LOGIN_OK:
 			log("(App:%p) ++++ CONNECT_EVENT ++++ USER_LOGIN_OK\n",context);
-			app_load_content();
+			//app_load_content();
 			break;
 
 		case DZ_CONNECT_EVENT_USER_NEW_OPTIONS:
@@ -321,11 +331,23 @@ static void app_change_content(char * content) {
 	log("CHANGE => %s\n", app_ctxt->sz_content_url);
 }
 
+static void app_play_afterload(
+    void* delegate,
+    void* operation_userdata,
+    dz_error_t status,
+    dz_object_handle result)
+{
+	dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
+	dz_player_play(app_ctxt->dzplayer, NULL, NULL,
+					DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
+					DZ_INDEX_IN_QUEUELIST_CURRENT);
+}
+
 static void app_load_content() {
 
 	log("LOAD => %s\n", app_ctxt->sz_content_url);
 	dz_player_load(app_ctxt->dzplayer,
-			NULL,
+			&app_play_afterload,
 			NULL,
 			app_ctxt->sz_content_url);
 }
@@ -343,6 +365,25 @@ static void app_playback_start_or_stop() {
 		dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
 	}
 }
+static void app_playback_start() {
+
+	if (!app_ctxt->is_playing) {
+		log("PLAY track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
+		dz_player_play(app_ctxt->dzplayer, NULL, NULL,
+				DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
+				DZ_INDEX_IN_QUEUELIST_CURRENT);
+
+	}
+}
+
+static void app_playback_stop() {
+
+	if (app_ctxt->is_playing) {
+		log("STOP => %s\n", app_ctxt->sz_content_url);
+		dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
+
+	}
+}
 
 static void app_playback_pause_or_resume() {
 
@@ -350,6 +391,22 @@ static void app_playback_pause_or_resume() {
 		log("PAUSE track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_pause(app_ctxt->dzplayer, NULL, NULL);
 	} else {
+		log("RESUME track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
+		dz_player_resume(app_ctxt->dzplayer, NULL, NULL);
+	}
+}
+
+static void app_playback_pause() {
+
+	if (app_ctxt->is_playing) {
+		log("PAUSE track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
+		dz_player_pause(app_ctxt->dzplayer, NULL, NULL);
+	}
+}
+
+static void app_playback_resume() {
+
+	if (!app_ctxt->is_playing) {
 		log("RESUME track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_resume(app_ctxt->dzplayer, NULL, NULL);
 	}
@@ -428,7 +485,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 
 		case DZ_PLAYER_EVENT_QUEUELIST_LOADED:
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
-			//app_playback_start_or_stop();
+			app_playback_start();
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_NO_RIGHT:
@@ -577,20 +634,30 @@ static void app_commands_display() {
 static void app_commands_get_next() {
 
 	char strBuf[128];
-
+	int cmd,arg;
 	sem_wait(&semaphorDeezer);
 
+	cmd=deezerCmd[deezerCmdIndexRd].Cmd;
+	arg=deezerCmd[deezerCmdIndexRd].Arg;
+	deezerCmdIndexRd++;
+	if(deezerCmdIndexRd>15)
+		deezerCmdIndexRd=0;
 
 
-	switch (sharedCmd) {
+	printf("Deezer cmd%i arg%i",cmd,arg);
+	switch (cmd) {
 		case DEEZER_CMD_START:
+			app_playback_start();
+			break;
 		case DEEZER_CMD_STOP:
-			app_playback_start_or_stop();
+			app_playback_stop();
 			break;
 
 		case DEEZER_CMD_RESUME:
+			app_playback_resume();
+			break;
 		case DEEZER_CMD_PAUSE:
-			app_playback_pause_or_resume();
+			app_playback_pause();
 			break;
 
 		case DEEZER_CMD_NEXT:
@@ -615,30 +682,15 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_LOAD_ALBUM:
-			sprintf(strBuf,"dzmedia:///album/%i",sharedArg);
+			sprintf(strBuf,"dzmedia:///album/%i",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PLAYLIST:
-			sprintf(strBuf,"dzmedia:///playlist/%i",sharedArg);
+			sprintf(strBuf,"dzmedia:///playlist/%i",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
-	/*
-		case '3':
-			app_change_content("dzradio:///user-743548285");
-			app_load_content();
-			break;
-		case '4':
-			app_change_content("dzmedia:///track/10287076");
-			app_load_content();
-			break;
-
-		default:
-			log(" - Command [%c] not recognised -\n",c);
-			app_commands_display();
-			break;
-	*/
 	}
 }
 
@@ -662,8 +714,12 @@ int deezerLaunch(char* token)
 
 int deezerPostCommand(uint32_t cmd,uint32_t arg )
 {
-	sharedCmd=cmd;
-	sharedArg=arg;
+
+	deezerCmd[deezerCmdIndexWr].Cmd=cmd;
+	deezerCmd[deezerCmdIndexWr].Arg=arg;
+	deezerCmdIndexWr++;
+	if(deezerCmdIndexWr>15)
+		deezerCmdIndexWr=0;
 
 	sem_post(&semaphorDeezer);
 }
