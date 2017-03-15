@@ -15,7 +15,7 @@ public:
 	peeBase();
 	virtual ~peeBase();
 
-	uint32_t _id;
+	char* _id;
 
 
 	void print(void);

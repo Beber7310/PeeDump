@@ -1,31 +1,31 @@
 /*
- * guiAlbum.cpp
+ * guiPodcast.cpp
  *
  *  Created on: 13 mars 2017
  *      Author: Bertrand
  */
 #include <stddef.h>
-#include "guiAlbum.h"
+#include "guiPodcast.h"
 #include "deezer.h"
 
-guiAlbum::guiAlbum() {
+guiPodcast::guiPodcast() {
 	// TODO Auto-generated constructor stub
 	_cy=100;
-	_pAlbum=NULL;
+	_pPodcast=NULL;
 	_selected=false;
 }
 
-guiAlbum::guiAlbum(peeAlbum* pAlbum) {
+guiPodcast::guiPodcast(peePodcast* pPodcast) {
 	_cy=100;
-	_pAlbum=pAlbum;
+	_pPodcast=pPodcast;
 	_selected=false;
 }
 
-guiAlbum::~guiAlbum() {
+guiPodcast::~guiPodcast() {
 	// TODO Auto-generated destructor stub
 }
 
-void guiAlbum::Render(void)
+void guiPodcast::Render(void)
 {
 	if(_selected){
 		ovgFill(44, 77, 232, 1);
@@ -37,15 +37,15 @@ void guiAlbum::Render(void)
 
 	RenderRoundRect(_x, _y, _cx, _cy, 25, 25);
 	ovgFill(255, 255, 255, 1);
-	if(_pAlbum)
+	if(_pPodcast)
 	{
-		RenderText(_x+5,_y+5,_pAlbum->_albumName,20);
-		RenderText(_x+5,_y+30,_pAlbum->_artisteName,15);
+		RenderText(_x+5,_y+5,_pPodcast->_title,20);
+
 	}
 
 }
 
-void guiAlbum::Mouse(stMouse* pMouse)
+void guiPodcast::Mouse(stMouse* pMouse)
 {
 	guiBase::Mouse(pMouse);
 	if(MouseIsInWindows(pMouse))
@@ -58,7 +58,7 @@ void guiAlbum::Mouse(stMouse* pMouse)
 		{
 
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,_pAlbum->_id);
+			deezerPostCommand(DEEZER_CMD_LOAD_PODCAST,_pPodcast->_id);
 		}
 
 

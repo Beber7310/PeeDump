@@ -14,7 +14,7 @@ class peeAlbum: public peeBase {
 public:
 	peeAlbum();
 	virtual ~peeAlbum();
-	peeAlbum(uint32_t id,const char* artisteName,const char* albumName,const char* coverHtmplPath);
+	peeAlbum(const char*  id,const char* artisteName,const char* albumName,const char* coverHtmplPath);
 
 
 	char* _artisteName;

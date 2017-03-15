@@ -47,6 +47,8 @@ guiBase* guiBuild()
 {
 	guiList* 		albumsWindows 	= new guiList();
 	guiList* 		playlistWindows = new guiList();
+	guiList* 		podcastWindows = new guiList();
+
 	guiTabLayout*	tabLayout		= new guiTabLayout();
 
 	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
@@ -59,9 +61,17 @@ guiBase* guiBuild()
 		playlistWindows->AddChild(new guiPlaylist(*it));
 	}
 
-	//tabLayout->AddChild(albumsWindows);
-	tabLayout->AddChild(playlistWindows);
+	for (vector<peePodcast*>::iterator it = appContext.Podcasts->begin(); it != appContext.Podcasts->end(); it++)
+	{
+		podcastWindows->AddChild(new guiPodcast(*it));
+	}
+	playlistWindows->SetName("Playlists");
+	albumsWindows->SetName("Albums");
+	podcastWindows->SetName("Podcasts");
 
+	tabLayout->AddChild(playlistWindows);
+	tabLayout->AddChild(albumsWindows);
+	tabLayout->AddChild(podcastWindows);
 
 	return tabLayout;
 }
@@ -72,13 +82,8 @@ void* guiThread(void * p) {
 
 	ovginit(&width, &height,&guiVSyncCallBack);				   // Graphics initialization
 
-	guiList mainWindows;
-	mainWindows.Resize(0,0,width,height);
-
-	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
-	{
-		mainWindows.AddChild(new guiAlbum(*it));
-	}
+	guiBase* mainWindows=guiBuild();
+	mainWindows->Resize(0,0,width,height);
 
 
 	while(1)
@@ -95,8 +100,8 @@ void* guiThread(void * p) {
 		ovgBackground(0, 0, 0);				   // Black background
 		//ovgFill(44, 77, 232, 1);				   // Big blue marble
 
-		mainWindows.Mouse(&localMouse);
-		mainWindows.Render();
+		mainWindows->Mouse(&localMouse);
+		mainWindows->Render();
 
 		pthread_mutex_lock(&vSynclock);
 		ovgEnd(); //Moved in callback						   // End the picture

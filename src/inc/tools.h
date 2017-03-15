@@ -10,6 +10,7 @@
 #include <vector>
 #include "peeAlbum.h"
 #include "peePlaylist.h"
+#include "peePodcast.h"
 #include "main.h"
 
 
@@ -22,8 +23,10 @@ void toolsGetToken(char* pToken);
 
 std::vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId);
 std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId);
+std::vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId);
 void toolsPrintAlbums(std::vector<peeAlbum*>* pAlbum);
 void toolsPrintPlaylists(std::vector<peePlaylist*>* pPlaylist);
+void toolsPrintPodcasts(std::vector<peePodcast*>* pPodcasts);
 int toolsGetNext(stAppContext* pContext);
 int toolsGetInput(stMouse* pMouse);
 

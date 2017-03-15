@@ -35,7 +35,7 @@ static sem_t semaphorDeezer;
 struct deezerCmd_st
 {
 	uint32_t Cmd;
-	uint32_t Arg;
+	const char* Arg;
 }deezerCmd[16];
 
 static int deezerCmdIndexWr=0;
@@ -528,7 +528,8 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_TRACK_SELECTED for idx: %d - is_preview:%d\n", context, idx, is_preview);
 			log("\tcan_pause_unpause:%d can_seek:%d nb_skip_allowed:%d\n", can_pause_unpause, can_seek, nb_skip_allowed);
 			if (selected_dzapiinfo)
-				log("\tnow:%s\n", selected_dzapiinfo);
+				//log("\tnow playing:%s\n", selected_dzapiinfo);
+				log("\tnow playin!:\n");
 			if (next_dzapiinfo)
 				log("\tnext:%s\n", next_dzapiinfo);
 		}
@@ -634,7 +635,8 @@ static void app_commands_display() {
 static void app_commands_get_next() {
 
 	char strBuf[128];
-	int cmd,arg;
+	int cmd;
+	char* arg;
 	sem_wait(&semaphorDeezer);
 
 	cmd=deezerCmd[deezerCmdIndexRd].Cmd;
@@ -682,15 +684,20 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_LOAD_ALBUM:
-			sprintf(strBuf,"dzmedia:///album/%i",arg);
+			sprintf(strBuf,"dzmedia:///album/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PLAYLIST:
-			sprintf(strBuf,"dzmedia:///playlist/%i",arg);
+			sprintf(strBuf,"dzmedia:///playlist/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
+		case DEEZER_CMD_LOAD_PODCAST:
+					sprintf(strBuf,"dzmedia:///show/%s",arg);
+					app_change_content(strBuf);
+					app_load_content();
+					break;
 	}
 }
 
@@ -712,7 +719,7 @@ int deezerLaunch(char* token)
 }
 
 
-int deezerPostCommand(uint32_t cmd,uint32_t arg )
+int deezerPostCommand(uint32_t cmd,const char* arg )
 {
 
 	deezerCmd[deezerCmdIndexWr].Cmd=cmd;

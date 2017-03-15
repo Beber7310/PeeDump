@@ -16,10 +16,11 @@ public:
 	virtual ~guiTabLayout();
 	void Render(void);
 	void ComputeChildAbsPos(void);
+	void Mouse(stMouse* pMouse);
 
-	float				_xOrigin,_yOrigin; // keep record of the first visible pixel of the listview
-	float				_xOriginTemp,_yOriginTemp; // keep record of the first visible pixel of the listview
-
+	int	_xOrigin,_yOrigin; // keep record of the first visible pixel of the listview
+	int	_xOriginTemp,_yOriginTemp; // keep record of the first visible pixel of the listview
+	int	_titleHeight;
 };
 
 #endif /* GUI_GUITABLAYOUT_H_ */

@@ -23,7 +23,7 @@ extern "C" {
 
 #define DEEZER_CMD_LOAD_ALBUM		30
 #define DEEZER_CMD_LOAD_PLAYLIST	31
-
+#define DEEZER_CMD_LOAD_PODCAST		32
 
 #define DEEZER_CMD_REPEAT_MODE_OFF	40
 #define DEEZER_CMD_REPEAT_MODE_ONE	41
@@ -35,7 +35,7 @@ extern "C" {
 #define DEEZER_CMD_EXIT				60
 
 int deezerLaunch(char* token);
-int deezerPostCommand(uint32_t cmd,uint32_t arg );
+int deezerPostCommand(uint32_t cmd,const char* arg );
 
 #ifdef __cplusplus
 	}

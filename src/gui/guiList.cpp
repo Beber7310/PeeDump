@@ -20,6 +20,8 @@ guiList::guiList() {
 
 }
 
+
+
 guiList::~guiList() {
 	// TODO Auto-generated destructor stub
 }
@@ -50,7 +52,7 @@ void guiList::Render(void)
 
 void guiList::ComputeChildAbsPos(void)
 {
-	float yCurrent = _yOrigin+_yOriginTemp;
+	float yCurrent = _y+_yOrigin+_yOriginTemp;
 	guiBase* pG=_ChildFirst;
 	while(pG)
 	{
@@ -78,6 +80,11 @@ void guiList::Mouse(stMouse* pMouse)
 		{
 			_yOrigin+=_yOriginTemp;
 			_yOriginTemp=0;
+
+			if(_yOrigin>0)
+			{
+				_yOrigin=0;
+			}
 		}
 
 		guiBase* pG=_ChildFirst;
@@ -86,6 +93,7 @@ void guiList::Mouse(stMouse* pMouse)
 			pG->Mouse(pMouse);
 			pG=pG->_BrotherNext;
 		}
-	}
 
+
+	}
 }

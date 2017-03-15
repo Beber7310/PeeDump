@@ -127,7 +127,7 @@ char * toolsGetHtml(char *url)
  *
  */
 vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
-				{
+{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -143,12 +143,12 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 
 	while(AlbumNode!=NULL)
 	{
-		uint32_t id;
+		const char* id;
 		const char* artisteName;
 		const char* albumName;
 		const char* coverHtmplPath;
 
-		id=atoi(AlbumNode->FirstChildElement("id")->FirstChild()->Value());
+		id=AlbumNode->FirstChildElement("id")->FirstChild()->Value();
 
 		artisteName=AlbumNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
 		albumName=AlbumNode->FirstChildElement("title")->FirstChild()->Value();
@@ -157,23 +157,14 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 
 		retAlbum->push_back(new peeAlbum(id,artisteName,albumName,coverHtmplPath));
 
-		/*
-		printf( "album name: %s\n", AlbumNode->FirstChildElement("title")->FirstChild()->Value() );
-		printf( "     %s\n", AlbumNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value() );
-		printf( "     %s\n", AlbumNode->FirstChildElement("id")->FirstChild()->Value() );
-		 */
-
-
-
-
 		AlbumNode=AlbumNode->NextSibling();
 	}
 
 	return retAlbum;
-				}
+}
 
 std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
-																{
+{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -190,23 +181,57 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 
 	while(AlbumNode!=NULL)
 	{
-		uint32_t id;
+		const char* id;
 		const char* name;
-		id=atoi(AlbumNode->FirstChildElement("id")->FirstChild()->Value());
+		const char* coverHtmplPath;
+
+		id=AlbumNode->FirstChildElement("id")->FirstChild()->Value();
 		name=AlbumNode->FirstChildElement("title")->FirstChild()->Value();
-		retPlaylist->push_back(new peePlaylist(id,name));
+		coverHtmplPath=AlbumNode->FirstChildElement("picture_big")->FirstChild()->Value();
 
-		/*
-		printf( "playlist name: %s\n", AlbumNode->FirstChildElement("title")->FirstChild()->Value() );
-		printf( "     %s\n", AlbumNode->FirstChildElement("id")->FirstChild()->Value() );
-		 */
-
+		retPlaylist->push_back(new peePlaylist(id,name,coverHtmplPath));
 
 		AlbumNode=AlbumNode->NextSibling();
 	}
 
 	return retPlaylist;
-																}
+}
+
+vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId)
+{
+	XMLDocument xmlDoc;
+	char url [1024];
+	char *fileBuf;
+
+	sprintf(url,"http://api.deezer.com/user/%i/podcasts&output=xml",userId);
+	fileBuf = toolsGetHtml(url);
+
+	xmlDoc.Parse( fileBuf, strlen(fileBuf));
+	free(fileBuf);
+	XMLNode* podcastNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "podcast");
+
+	vector<peePodcast*>* retPodcast =new std::vector<peePodcast*>;
+
+	while(podcastNode!=NULL)
+	{
+		const char* id;
+		const char* title;
+
+		const char* coverHtmplPath;
+
+		id=podcastNode->FirstChildElement("id")->FirstChild()->Value();
+
+		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
+		coverHtmplPath=podcastNode->FirstChildElement("picture")->FirstChild()->Value();
+
+
+		retPodcast->push_back(new peePodcast(id,title,coverHtmplPath));
+
+		podcastNode=podcastNode->NextSibling();
+	}
+
+	return retPodcast;
+}
 
 void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {
@@ -219,6 +244,14 @@ void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 void toolsPrintPlaylists(vector<peePlaylist*>* pPlaylist)
 {
 	for (vector<peePlaylist*>::iterator it = pPlaylist->begin(); it != pPlaylist->end(); it++)
+	{
+		(*it)->print();
+	}
+}
+
+void toolsPrintPodcasts(vector<peePodcast*>* pPodcasts)
+{
+	for (vector<peePodcast*>::iterator it = pPodcasts->begin(); it != pPodcasts->end(); it++)
 	{
 		(*it)->print();
 	}

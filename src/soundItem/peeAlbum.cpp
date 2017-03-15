@@ -19,6 +19,7 @@ using namespace std;
 
 peeAlbum::peeAlbum() {
 	// TODO Auto-generated constructor stub
+	_id=NULL;
 	_artisteName=NULL;
 	_albumName=NULL;
 	_coverHtmplPath=NULL;
@@ -28,13 +29,14 @@ peeAlbum::~peeAlbum() {
 	// TODO Auto-generated destructor stub
 }
 
-peeAlbum::peeAlbum(uint32_t id,const char* artisteName,const char* albumName,const char* coverHtmplPath){
+peeAlbum::peeAlbum(const char* id,const char* artisteName,const char* albumName,const char* coverHtmplPath){
 	// TODO Auto-generated constructor stub
-	_id=id;
+	_id=(char*)malloc(strlen(id)+1);;
 	_artisteName=(char*)malloc(strlen(artisteName)+1);
 	_albumName=(char*)malloc(strlen(albumName)+1);
 	_coverHtmplPath=(char*)malloc(strlen(coverHtmplPath)+1);
 
+	strcpy(_id,id);
 	strcpy(_albumName,albumName);
 	strcpy(_artisteName,artisteName);
 	strcpy(_coverHtmplPath,coverHtmplPath);

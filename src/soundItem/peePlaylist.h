@@ -14,9 +14,10 @@ class peePlaylist: public peeBase {
 public:
 	peePlaylist();
 	virtual ~peePlaylist();
-	peePlaylist(uint32_t id,const char* name);
+	peePlaylist(const char*  id,const char* name,const char* coverHtmplPath);
 
 	char* _name;
+	char* _coverHtmplPath;
 
 	void print();
 };

@@ -34,9 +34,11 @@ int main(int argc, char *argv[]) {
 	// fetch album list
 	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
 	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
+	appContext.Podcasts=toolsGetUserPodcasts(appContext.gUser);
 
 	toolsPrintAlbums(appContext.Albums);
 	toolsPrintPlaylists(appContext.Playlist);
+	toolsPrintPodcasts(appContext.Podcasts);
 
 	guiLaunch();
 

@@ -16,7 +16,8 @@ guiBase::guiBase() {
 	_y=0;
 	_cx=500;
 	_cy=100;
-
+	_xTarget=0;
+	_yTarget=0;
 	_BrotherNext=NULL;
 	_BrotherPrev=NULL;
 	_ChildFirst=NULL;
@@ -26,10 +27,19 @@ guiBase::guiBase() {
 	mouseOriginX=0;
 	mouseOriginY=0;
 	mouseFirstTouch=true;
+
+	_windowName=NULL;
+	nbrChild=0;
 }
+
 
 guiBase::~guiBase() {
 	// TODO Auto-generated destructor stub
+}
+void guiBase::SetName(const char * pName)
+{
+	_windowName=(char*)malloc(strlen(pName)+1);
+	strcpy(_windowName,pName);
 }
 
 void guiBase::Render(void)
@@ -59,6 +69,7 @@ void guiBase::AddChild(guiBase* pGui)
 		}
 		pG->_BrotherNext=pGui;
 	}
+	nbrChild++;
 }
 
 void guiBase::Mouse(stMouse* pMouse)

@@ -16,12 +16,14 @@
 #include "deezer.h"
 #include "peeAlbum.h"
 #include "peePlaylist.h"
+#include "peePodcast.h"
 
 struct stAppContext {
 	char 		gToken[128];
 	uint32_t	gUser;
 	std::vector<peeAlbum*>*    Albums;
 	std::vector<peePlaylist*>* Playlist;
+	std::vector<peePodcast*>* Podcasts;
 };
 
 struct stMouse {

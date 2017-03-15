@@ -22,17 +22,21 @@ public:
 	bool MouseIsInWindows(stMouse* pMouse);
 	void AddChild(guiBase* pGui);
 //protected:
-	int _x,_y,_cx,_cy;
+	int _x,_y,_cx,_cy,_xTarget,_yTarget;
 	int screenSizeX,screenSizeY;
 	int mouseOriginX,mouseOriginY;
+	int nbrChild;
 	bool mouseFirstTouch;
 
 	guiBase* _BrotherNext;
 	guiBase* _BrotherPrev;
 	guiBase* _ChildFirst;
 
+	char* _windowName;
+
 	void RenderRoundRect(int x, int y, int w, int h, int rw, int rh);
 	void RenderText(int x, int y, const char *s, int pointsize);
+	void SetName(const char * pName);
 
 	//std::list<GuiBase*> _child;
 };
