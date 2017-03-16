@@ -54,6 +54,34 @@ uint32_t  toolsGetUser()
 
 }
 
+std::vector<peePodcast*>*  toolsGetPodcast(void)
+{
+	FILE *stream;
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t read;
+	std::vector<peePodcast*>*retPodcast =new std::vector<peePodcast*>();
+
+
+	stream = fopen("data.conf", "r");
+	if (stream == NULL)
+		exit(EXIT_FAILURE);
+
+	while ((read = getline(&line, &len, stream)) != -1) {
+		if(strncmp("podcast:",line,strlen("user:"))==0)
+		{
+			retAlbum->push_back(new peePodcasts(&line[strlen("podcast:")]));
+		}
+	}
+
+	free(line);
+	fclose(stream);
+
+	return retPodcast;
+
+}
+
+
 void toolsGetToken(char* pToken)
 {
 
@@ -232,6 +260,47 @@ vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId)
 
 	return retPodcast;
 }
+
+vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* htmlSource)
+{
+	XMLDocument xmlDoc;
+	char *fileBuf;
+
+	fileBuf = toolsGetHtml(htmlSource);
+
+	xmlDoc.Parse( fileBuf, strlen(fileBuf));
+	free(fileBuf);
+	XMLNode* podcastNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "podcast");
+
+	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
+
+	while(podcastNode!=NULL)
+	{
+		//deprecated, to be updated with the new xml
+		const char* id;
+		const char* title;
+		const char* coverHtmplPath;
+
+
+		// value to be keeped
+		time_t	date;
+		char*	title;
+		char* htmlPath;
+
+		//deprecated, to be updated with the new xml
+		id=podcastNode->FirstChildElement("id")->FirstChild()->Value();
+		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
+		coverHtmplPath=podcastNode->FirstChildElement("picture")->FirstChild()->Value();
+
+
+		retPodcast->push_back(new podcasttrack(pParent,date,title,htmlPath));
+
+		podcastNode=podcastNode->NextSibling();
+	}
+
+	return retPodcast;
+}
+
 
 void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {

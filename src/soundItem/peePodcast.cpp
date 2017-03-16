@@ -28,19 +28,17 @@ peePodcast::~peePodcast() {
 	// TODO Auto-generated destructor stub
 }
 
-peePodcast::peePodcast(const char* id,const char* title,const char* coverHtmplPath){
+peePodcast::peePodcast(const char* htmlSource){
 	// TODO Auto-generated constructor stub
-	_id=(char*)malloc(strlen(id)+1);;
-	_title=(char*)malloc(strlen(title)+1);
-	_coverHtmplPath=(char*)malloc(strlen(coverHtmplPath)+1);
+	_title="";
+	_coverHtmplPath="";
+	_htmlSource=(char*)malloc(strlen(htmlSource)+1);
+	_traks=toolsGetUserPodcastTracks(this,_htmlSource);
 
-	strcpy(_id,id);
-	strcpy(_title,title);
-	strcpy(_coverHtmplPath,coverHtmplPath);
 }
 
 void peePodcast::print() {
 
-	cout << _title << "(" << _id << ")" <<  endl;
+	cout << _title <<  endl;
 
 }

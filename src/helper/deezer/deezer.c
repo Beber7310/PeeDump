@@ -694,10 +694,15 @@ static void app_commands_get_next() {
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PODCAST:
-					sprintf(strBuf,"dzmedia:///show/%s",arg);
-					app_change_content(strBuf);
-					app_load_content();
-					break;
+			sprintf(strBuf,"dzmedia:///show/%s",arg);
+			app_change_content(strBuf);
+			app_load_content();
+			break;
+		case DEEZER_CMD_LOAD_PODCAST_MP3:
+			app_playback_stop();
+			//launch mp3 player
+
+			break;
 	}
 }
 

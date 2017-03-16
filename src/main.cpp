@@ -30,11 +30,11 @@ int main(int argc, char *argv[]) {
 	// First of all we retrieve user id and token
 	appContext.gUser=toolsGetUser();
 	toolsGetToken(appContext.gToken);
-
+	appContext.Podcasts=toolsGetPodcast();
 	// fetch album list
 	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
 	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
-	appContext.Podcasts=toolsGetUserPodcasts(appContext.gUser);
+	//appContext.Podcasts=toolsGetUserPodcasts(appContext.gUser);
 
 	toolsPrintAlbums(appContext.Albums);
 	toolsPrintPlaylists(appContext.Playlist);
