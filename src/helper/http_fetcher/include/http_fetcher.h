@@ -28,7 +28,9 @@ extern "C" {
 
 #define PORT_NUMBER 			80
 #define HTTP_VERSION 			"HTTP/1.0"
-#define DEFAULT_USER_AGENT		"HTTP Fetcher"
+//#define DEFAULT_USER_AGENT		"HTTP Fetcher\r\nAccept-Charset: ISO-8859-1,UTF-8;q=0.7,*;q=0.7\r\nCache-Control: no-cache"
+#define DEFAULT_USER_AGENT		"HTTP Fetcher\r\nCache-Control: no-cache"
+//#define DEFAULT_USER_AGENT		"HTTP Fetcher"
 #define DEFAULT_READ_TIMEOUT	30		/* Seconds to wait before giving up
  *	when no data is arriving */
 

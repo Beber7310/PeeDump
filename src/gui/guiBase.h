@@ -36,6 +36,7 @@ public:
 
 	void RenderRoundRect(int x, int y, int w, int h, int rw, int rh);
 	void RenderText(int x, int y, const char *s, int pointsize);
+	void Polygon(float* x, float* y, int n);
 	void SetName(const char * pName);
 
 	//std::list<GuiBase*> _child;

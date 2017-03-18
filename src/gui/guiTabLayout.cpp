@@ -26,14 +26,17 @@ void guiTabLayout::Render(void)
 {
 	ComputeChildAbsPos();
 
-
-
 	guiBase* pG=_ChildFirst;
 	while(pG)
 	{
-		pG->Render();
+		bool skip=false;
 
-
+		if(pG->_x>=_cx)
+			skip=true;
+		if((pG->_x+pG->_cx)<=_x)
+			skip=true;
+		if(!skip)
+			pG->Render();
 
 		// Title
 		ovgFill(0, 0, 50, 1);
@@ -58,7 +61,7 @@ void guiTabLayout::ComputeChildAbsPos(void)
 		pG->_x=xCurrent;
 		pG->_y=_y +_titleHeight;
 		pG->_cx=_cx;
-		pG->_cy=_cy;
+		pG->_cy=_cy - _titleHeight;
 		xCurrent+=_cx;
 
 		pG=pG->_BrotherNext;
@@ -87,14 +90,14 @@ void guiTabLayout::Mouse(stMouse* pMouse)
 			_xOriginTemp=0;
 
 			float ftmp=fmod(_xOrigin,600.0);
-			printf("ftmp %f origin %i\n",ftmp,_xOrigin);
+			//printf("ftmp %f origin %i\n",ftmp,_xOrigin);
 
 			if(ftmp<-300)
 				_xTarget=_xOrigin-_cx-ftmp;
 			else
 				_xTarget=_xOrigin-ftmp;
 
-			printf("_xTarget %i \n",_xTarget);
+			//printf("_xTarget %i \n",_xTarget);
 		/*	if(_xTarget<-(nbrChild-1)*_cx)
 			{
 				_xTarget=-(nbrChild-1)*_cx;

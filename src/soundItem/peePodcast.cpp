@@ -14,6 +14,7 @@
 
 #include "peePodcast.h"
 #include "peeBase.h"
+#include "tools.h"
 
 using namespace std;
 
@@ -24,18 +25,35 @@ peePodcast::peePodcast() {
 	_coverHtmplPath=NULL;
 }
 
-peePodcast::~peePodcast() {
-	// TODO Auto-generated destructor stub
-}
-
-peePodcast::peePodcast(const char* htmlSource){
+peePodcast::peePodcast(char* htmlSource){
 	// TODO Auto-generated constructor stub
 	_title="";
 	_coverHtmplPath="";
 	_htmlSource=(char*)malloc(strlen(htmlSource)+1);
-	_traks=toolsGetUserPodcastTracks(this,_htmlSource);
+	strcpy(_htmlSource,htmlSource);
 
+
+	_traks=toolsGetUserPodcastTracks(this,_htmlSource);
+	printf("Podcast created\n");
 }
+
+peePodcast::~peePodcast() {
+	// TODO Auto-generated destructor stub
+}
+
+void peePodcast::setTitle(const char* title)
+{
+	_title=(char*)malloc(strlen(title)+1);
+	strcpy(_title,title);
+}
+
+void peePodcast::setImage(const char* img)
+{
+	_coverHtmplPath=(char*)malloc(strlen(img)+1);
+	strcpy(_coverHtmplPath,img);
+}
+
+
 
 void peePodcast::print() {
 

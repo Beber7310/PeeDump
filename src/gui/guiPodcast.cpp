@@ -58,10 +58,7 @@ void guiPodcast::Mouse(stMouse* pMouse)
 		{
 
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_PODCAST,_pPodcast->_id);
+			deezerPostCommand(DEEZER_CMD_LOAD_PODCAST_MP3,_pPodcast->_traks->front()->_localPath);
 		}
-
-
 	}
-
 }

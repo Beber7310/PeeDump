@@ -11,34 +11,44 @@
 #include <list>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdlib.h>
+#include <signal.h>
 
 #include "http_fetcher.h"		/* Must include this to use HTTP Fetcher */
 #include "tools.h"
 #include "deezer.h"
 #include "main.h"
-
+#include "downloader.h"
 
 stAppContext appContext;
 
+static volatile int keepRunning = 1;
+void intHandler(int dummy) {
+	printf("ctrlC\n");
+    exit(0);
+}
 
 int guiLaunch();
 
 int main(int argc, char *argv[]) {
 
-
+	signal(SIGINT, intHandler);
+	toolsDownloadInit();
 
 	// First of all we retrieve user id and token
 	appContext.gUser=toolsGetUser();
 	toolsGetToken(appContext.gToken);
 	appContext.Podcasts=toolsGetPodcast();
+
 	// fetch album list
 	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
 	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
 	//appContext.Podcasts=toolsGetUserPodcasts(appContext.gUser);
 
+
 	toolsPrintAlbums(appContext.Albums);
 	toolsPrintPlaylists(appContext.Playlist);
-	toolsPrintPodcasts(appContext.Podcasts);
+
 
 	guiLaunch();
 

@@ -14,6 +14,7 @@
 #include "guiAlbum.h"
 #include "guiPlaylist.h"
 #include "guiPodcast.h"
+#include "guiPlayer.h"
 
 
 

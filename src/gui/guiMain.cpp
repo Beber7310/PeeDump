@@ -47,8 +47,8 @@ guiBase* guiBuild()
 {
 	guiList* 		albumsWindows 	= new guiList();
 	guiList* 		playlistWindows = new guiList();
-	guiList* 		podcastWindows = new guiList();
-
+	guiList* 		podcastWindows  = new guiList();
+	guiPlayer* 		playerWindows   = new guiPlayer();
 	guiTabLayout*	tabLayout		= new guiTabLayout();
 
 	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
@@ -65,10 +65,13 @@ guiBase* guiBuild()
 	{
 		podcastWindows->AddChild(new guiPodcast(*it));
 	}
+
 	playlistWindows->SetName("Playlists");
 	albumsWindows->SetName("Albums");
 	podcastWindows->SetName("Podcasts");
+	playerWindows->SetName("Player");
 
+	tabLayout->AddChild(playerWindows);
 	tabLayout->AddChild(playlistWindows);
 	tabLayout->AddChild(albumsWindows);
 	tabLayout->AddChild(podcastWindows);
@@ -107,12 +110,13 @@ void* guiThread(void * p) {
 		ovgEnd(); //Moved in callback						   // End the picture
 
 
-
-	/*	struct timeval tv;
+		/*
+		struct timeval tv;
 		gettimeofday(&tv, NULL);
 		unsigned long microseconds = (tv.tv_sec*1000000)+tv.tv_usec;
 		printf("sync  %lu \n", microseconds-lasttime);
-		lasttime = microseconds;*/
+		lasttime = microseconds;
+		*/
 	}
 
 }
@@ -200,6 +204,7 @@ int guiLaunch()
 	pthread_t my_guiThread;
 	pthread_t my_mouseThread;
 	int ret;
+
 
 	if (pthread_mutex_init(&mousseLock, NULL) != 0)
 	{

@@ -11,6 +11,10 @@
 #include <linux/input.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
+#include <sys/stat.h>
+#include <semaphore.h>
+#include <pthread.h>
 
 #include "tinyxml2.h"
 #include "http_fetcher.h"
@@ -22,6 +26,16 @@
 
 using namespace tinyxml2;
 using namespace std;
+
+
+off_t fileSize(const char *filename) {
+	struct stat st;
+
+	if (stat(filename, &st) == 0)
+		return st.st_size;
+
+	return -1;
+}
 
 uint32_t  toolsGetUser()
 {
@@ -55,9 +69,10 @@ uint32_t  toolsGetUser()
 }
 
 std::vector<peePodcast*>*  toolsGetPodcast(void)
-{
+		{
 	FILE *stream;
 	char *line = NULL;
+	char* podCast;
 	size_t len = 0;
 	ssize_t read;
 	std::vector<peePodcast*>*retPodcast =new std::vector<peePodcast*>();
@@ -70,7 +85,10 @@ std::vector<peePodcast*>*  toolsGetPodcast(void)
 	while ((read = getline(&line, &len, stream)) != -1) {
 		if(strncmp("podcast:",line,strlen("user:"))==0)
 		{
-			retAlbum->push_back(new peePodcasts(&line[strlen("podcast:")]));
+			podCast=&line[strlen("podcast:")];
+			podCast[strlen(podCast)-1]=0;// remove last char as it is a \n
+
+			retPodcast->push_back(new peePodcast(podCast));
 		}
 	}
 
@@ -79,8 +97,7 @@ std::vector<peePodcast*>*  toolsGetPodcast(void)
 
 	return retPodcast;
 
-}
-
+		}
 
 void toolsGetToken(char* pToken)
 {
@@ -112,7 +129,6 @@ void toolsGetToken(char* pToken)
 
 	return;
 }
-
 
 /*
  *
@@ -148,14 +164,13 @@ char * toolsGetHtml(char *url)
 	return fileBuf;
 }
 
-
 /*
  *  Sound Item management
  *
  *
  */
 vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
-{
+		{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -165,7 +180,7 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
-	XMLNode* AlbumNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "album");
+	XMLNode* AlbumNode = xmlDoc.FirstChildElement( )->FirstChildElement( "data" )->FirstChildElement( "album");
 
 	vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
 
@@ -189,10 +204,10 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 	}
 
 	return retAlbum;
-}
+		}
 
 std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
-{
+		{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -223,8 +238,9 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	}
 
 	return retPlaylist;
-}
+		}
 
+/*
 vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId)
 {
 	XMLDocument xmlDoc;
@@ -259,10 +275,10 @@ vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId)
 	}
 
 	return retPodcast;
-}
+}*/
 
 vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* htmlSource)
-{
+		{
 	XMLDocument xmlDoc;
 	char *fileBuf;
 
@@ -270,40 +286,54 @@ vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* ht
 
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
-	XMLNode* podcastNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "podcast");
+	XMLNode* podcastNode;
+	podcastNode = xmlDoc.FirstChildElement( "rss" );
+	podcastNode = podcastNode->FirstChildElement( "channel" );
+
+	pParent->setTitle(podcastNode->FirstChildElement( "title")->FirstChild()->Value());
+	pParent->setImage(podcastNode->FirstChildElement( "image")->FirstChildElement( "url")->FirstChild()->Value());
+
+	podcastNode = podcastNode->FirstChildElement( "item");
+
+
+	char szCmd[512];
+	sprintf(szCmd,"mkdir -p \"podcast/%s\"",pParent->_title);
+	system(szCmd);
 
 	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
 
 	while(podcastNode!=NULL)
 	{
-		//deprecated, to be updated with the new xml
-		const char* id;
-		const char* title;
-		const char* coverHtmplPath;
-
-
-		// value to be keeped
-		time_t	date;
-		char*	title;
-		char* htmlPath;
+		tm tsDuration;
+		tm	date;
+		int size;
+		const char*	title;
+		const char*	htmlMp3;
+		const char* duration;
+		const char* pubDate;
 
 		//deprecated, to be updated with the new xml
-		id=podcastNode->FirstChildElement("id")->FirstChild()->Value();
 		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
-		coverHtmplPath=podcastNode->FirstChildElement("picture")->FirstChild()->Value();
+		htmlMp3=podcastNode->FirstChildElement( "enclosure" )->Attribute( "url");
+		size=atoi(podcastNode->FirstChildElement( "enclosure" )->Attribute( "length"));
+		duration=podcastNode->FirstChildElement( "itunes:duration" )->FirstChild()->Value();
+		pubDate=podcastNode->FirstChildElement( "pubDate" )->FirstChild()->Value();
 
+		strptime(duration, "%H:%M:%S", &tsDuration);
+		strptime(pubDate, "%a, %d %b %Y %H:%M:%S", &date);
 
-		retPodcast->push_back(new podcasttrack(pParent,date,title,htmlPath));
+		if(((tsDuration.tm_hour*60)+tsDuration.tm_min)>10)
+			retPodcast->push_back(new peePodcastTrack(pParent,&date,title,htmlMp3,size));
 
 		podcastNode=podcastNode->NextSibling();
 	}
 
 	return retPodcast;
-}
-
+		}
 
 void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {
+	printf("===== ALBUMS =====\r\n");
 	for (vector<peeAlbum*>::iterator it = pAlbum->begin(); it != pAlbum->end(); it++)
 	{
 		(*it)->print();
@@ -312,6 +342,7 @@ void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 
 void toolsPrintPlaylists(vector<peePlaylist*>* pPlaylist)
 {
+	printf("===== PLAYLISTS =====\r\n");
 	for (vector<peePlaylist*>::iterator it = pPlaylist->begin(); it != pPlaylist->end(); it++)
 	{
 		(*it)->print();
@@ -320,6 +351,7 @@ void toolsPrintPlaylists(vector<peePlaylist*>* pPlaylist)
 
 void toolsPrintPodcasts(vector<peePodcast*>* pPodcasts)
 {
+	printf("===== PODCASTS =====\r\n");
 	for (vector<peePodcast*>::iterator it = pPodcasts->begin(); it != pPodcasts->end(); it++)
 	{
 		(*it)->print();

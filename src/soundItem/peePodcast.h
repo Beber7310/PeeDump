@@ -8,14 +8,21 @@
 #ifndef SOUNDITEM_peePodcast_H_
 #define SOUNDITEM_peePodcast_H_
 
+#include <vector>
+
+class peePodcast;
+
 #include "peeBase.h"
 #include "peePodcastTrack.h"
+
 class peePodcast: public peeBase {
 public:
 	peePodcast();
 	virtual ~peePodcast();
-	peePodcast(const char* coverHtmplPath);
+	peePodcast( char* htmlSource);
 
+	void setTitle(const char*);
+	void setImage(const char*);
 
 	char* _title;
 	char* _coverHtmplPath;

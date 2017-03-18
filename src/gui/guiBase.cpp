@@ -128,4 +128,14 @@ void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 
 }
 
+void guiBase::Polygon(float* x, float* y, int n)
+{
+	for(int ii=0;ii<n;ii++)
+	{
+		y[ii]=(screenSizeY-y[ii]);
+	}
+
+	ovgPolygon((float*)x, (float*)y, n);
+}
+
 
