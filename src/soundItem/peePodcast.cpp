@@ -21,13 +21,15 @@ using namespace std;
 peePodcast::peePodcast() {
 	// TODO Auto-generated constructor stub
 	_id=NULL;
-	_title=NULL;
+	_titleUTF8=NULL;
+	_directory=NULL;
 	_coverHtmplPath=NULL;
 }
 
 peePodcast::peePodcast(char* htmlSource){
 	// TODO Auto-generated constructor stub
-	_title="";
+	_titleUTF8="";
+	_directory="";
 	_coverHtmplPath="";
 	_htmlSource=(char*)malloc(strlen(htmlSource)+1);
 	strcpy(_htmlSource,htmlSource);
@@ -43,8 +45,13 @@ peePodcast::~peePodcast() {
 
 void peePodcast::setTitle(const char* title)
 {
-	_title=(char*)malloc(strlen(title)+1);
-	strcpy(_title,title);
+	_titleUTF8=(char*)malloc(strlen(title)+1);
+	strcpy(_titleUTF8,title);
+
+	_directory=(char*)malloc(strlen(title)+1);
+	strcpy(_directory,title);
+
+	toolsCleanUTF8(_directory);
 }
 
 void peePodcast::setImage(const char* img)
@@ -57,6 +64,6 @@ void peePodcast::setImage(const char* img)
 
 void peePodcast::print() {
 
-	cout << _title <<  endl;
+	cout << _titleUTF8 <<  endl;
 
 }

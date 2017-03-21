@@ -39,15 +39,17 @@ peePodcastTrack::peePodcastTrack(peePodcast *pParent,tm* date, const char* title
 
 	char strtime[128];
 	strftime(strtime, sizeof(strtime), "%Y-%m-%d", &_date);
-	_localPath=(char*)malloc(strlen(pParent->_title)+strlen(strtime)+strlen(_title)+50);
+	_localPath=(char*)malloc(strlen(pParent->_directory)+strlen(strtime)+strlen(_title)+50);
 	_localPath[0]=0;
 	strcpy (_localPath,"podcast/");
-	strcat (_localPath,pParent->_title);
+	strcat (_localPath,pParent->_directory);
 	strcat (_localPath,"/");
 	strcat (_localPath,strtime);
 	strcat (_localPath,"-");
 	strcat (_localPath,title);
 	strcat (_localPath,".mp3");
+
+	toolsCleanUTF8(_localPath);
 
 	_downloaded =false;
 
@@ -59,13 +61,13 @@ void peePodcastTrack::checkDownload(void)
 {
 	_downloaded=false;
 
-	if(access( _localPath, F_OK ) != -1 )
+	if(toolsDownloadExist( _localPath))
 	{
-		int realSize=fileSize(_localPath);
+		int realSize=toolsDownloadFileSize(_localPath);
 		if(realSize<(9*(_size/10)))
 		{
 			_downloaded=false;
-			printf("Pod cast %s wrong size expecting %i get %i\n",_localPath,_size,realSize);
+			//printf("Pod cast %s wrong size expecting %i get %i\n",_localPath,_size,realSize);
 		}
 		else
 		{
@@ -75,12 +77,12 @@ void peePodcastTrack::checkDownload(void)
 	else
 	{
 		_downloaded=false;
-		printf("Pod cast %s not existing\n",_localPath);
+		//printf("Pod cast %s not existing\n",_localPath);
 	}
 
 	if(!_downloaded)
 	{
-		 //DOWNLOAD HERE
+		//DOWNLOAD HERE
 		toolsDownloadPodcast(this);
 	}
 }

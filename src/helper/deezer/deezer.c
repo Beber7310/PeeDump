@@ -634,7 +634,7 @@ static void app_commands_display() {
 }
 static void app_commands_get_next() {
 
-	char strBuf[128];
+	char strBuf[1024];
 	int cmd;
 	char* arg;
 	sem_wait(&semaphorDeezer);
@@ -684,23 +684,28 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_LOAD_ALBUM:
+			system("mpc stop");
 			sprintf(strBuf,"dzmedia:///album/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PLAYLIST:
+			system("mpc stop");
 			sprintf(strBuf,"dzmedia:///playlist/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PODCAST:
+			system("mpc stop");
 			sprintf(strBuf,"dzmedia:///show/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			break;
 		case DEEZER_CMD_LOAD_PODCAST_MP3:
 			app_playback_stop();
-			//launch mp3 player
+			sprintf(strBuf,"mpc clear;mpc add \"%s\";mpc play",arg);
+			printf("%s\n",strBuf);
+			system(strBuf);//launch mp3 player
 
 			break;
 	}

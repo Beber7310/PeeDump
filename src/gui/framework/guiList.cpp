@@ -24,6 +24,7 @@ guiList::guiList() {
 
 guiList::~guiList() {
 	// TODO Auto-generated destructor stub
+	//FIXME add a free for each child
 }
 
 

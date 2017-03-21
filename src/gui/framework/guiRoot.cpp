@@ -1,10 +1,9 @@
 /*
- * guiMain.cpp
+ * guiRoot.cpp
  *
- *  Created on: 13 mars 2017
+ *  Created on: 18 mars 2017
  *      Author: Bertrand
  */
-
 // first OpenVG program
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,10 +23,11 @@
 #include <pthread.h>
 #include <semaphore.h>
 
-#include "guiMain.h"
-#include "peeAlbum.h"
-#include "peePlaylist.h"
 #include "main.h"
+
+#include "guiBase.h"
+#include "guiRoot.h"
+
 
 static pthread_mutex_t vSynclock;
 static pthread_mutex_t mousseLock;
@@ -35,62 +35,35 @@ static stMouse gMouse;
 
 #define EVENT_DEVICE    "/dev/input/event0"
 
-unsigned long lasttime = 0;
+guiBase* currentWindows=NULL;
+guiBase* mainWindows=NULL;
+guiBase* popupWindows=NULL;
+int screenWidth=200, screenHeight=200;
+
 void guiVSyncCallBack(DISPMANX_UPDATE_HANDLE_T u, void * arg)
 {
-
 	pthread_mutex_unlock(&vSynclock);
-
 }
 
-guiBase* guiBuild()
-{
-	guiList* 		albumsWindows 	= new guiList();
-	guiList* 		playlistWindows = new guiList();
-	guiList* 		podcastWindows  = new guiList();
-	guiPlayer* 		playerWindows   = new guiPlayer();
-	guiTabLayout*	tabLayout		= new guiTabLayout();
-
-	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
-	{
-		albumsWindows->AddChild(new guiAlbum(*it));
-	}
-
-	for (vector<peePlaylist*>::iterator it = appContext.Playlist->begin(); it != appContext.Playlist->end(); it++)
-	{
-		playlistWindows->AddChild(new guiPlaylist(*it));
-	}
-
-	for (vector<peePodcast*>::iterator it = appContext.Podcasts->begin(); it != appContext.Podcasts->end(); it++)
-	{
-		podcastWindows->AddChild(new guiPodcast(*it));
-	}
-
-	playlistWindows->SetName("Playlists");
-	albumsWindows->SetName("Albums");
-	podcastWindows->SetName("Podcasts");
-	playerWindows->SetName("Player");
-
-	tabLayout->AddChild(playerWindows);
-	tabLayout->AddChild(playlistWindows);
-	tabLayout->AddChild(albumsWindows);
-	tabLayout->AddChild(podcastWindows);
-
-	return tabLayout;
-}
+unsigned long lasttime = 0;
 
 void* guiThread(void * p) {
-	int width, height;
+
 	stMouse localMouse;
+	struct timeval tv;
+	unsigned long lasttime;
+	unsigned long microseconds;
+	ovginit(&screenWidth, &screenHeight,&guiVSyncCallBack);				   // Graphics initialization
 
-	ovginit(&width, &height,&guiVSyncCallBack);				   // Graphics initialization
-
-	guiBase* mainWindows=guiBuild();
-	mainWindows->Resize(0,0,width,height);
+	//guiBase* mainWindows=guiBuild();
+	currentWindows->Resize(0,0,screenWidth,screenHeight);
 
 
 	while(1)
 	{
+
+		gettimeofday(&tv, NULL);
+		lasttime = (tv.tv_sec*1000000)+tv.tv_usec;
 
 		pthread_mutex_lock(&mousseLock);
 		localMouse.x=((stMouse*) p)->x;
@@ -98,25 +71,25 @@ void* guiThread(void * p) {
 		localMouse.t=((stMouse*) p)->t;
 		pthread_mutex_unlock(&mousseLock);
 
-		ovgStart(width, height);				   // Start the picture
+		ovgStart(screenWidth, screenHeight);				   // Start the picture
 
 		ovgBackground(0, 0, 0);				   // Black background
 		//ovgFill(44, 77, 232, 1);				   // Big blue marble
 
-		mainWindows->Mouse(&localMouse);
-		mainWindows->Render();
+		if(currentWindows)
+		{
+			currentWindows->Mouse(&localMouse);
+			currentWindows->Render();
+		}
+		//pthread_mutex_lock(&vSynclock);
+		gettimeofday(&tv, NULL);
+		microseconds = (tv.tv_sec*1000000)+tv.tv_usec;
 
-		pthread_mutex_lock(&vSynclock);
+		//printf("sync  %lu \n", microseconds-lasttime);
+
+
 		ovgEnd(); //Moved in callback						   // End the picture
 
-
-		/*
-		struct timeval tv;
-		gettimeofday(&tv, NULL);
-		unsigned long microseconds = (tv.tv_sec*1000000)+tv.tv_usec;
-		printf("sync  %lu \n", microseconds-lasttime);
-		lasttime = microseconds;
-		*/
 	}
 
 }
@@ -179,6 +152,7 @@ void* guiMouseThread(void * p)
 		{
 			//printf("%x %x %x\n",ev.type, ev.code,ev.value);
 		}
+
 		if(update)
 		{
 			update=false;
@@ -186,7 +160,6 @@ void* guiMouseThread(void * p)
 			pMouse->x=600-y; // swap on purpose !!!
 			pMouse->y=x; // swap on purpose !!!
 			pMouse->t=t;
-
 			pthread_mutex_unlock(&mousseLock);
 		}
 	}
@@ -198,8 +171,7 @@ void* guiMouseThread(void * p)
 	return 0;
 }
 
-
-int guiLaunch()
+int guiLaunch(void)
 {
 	pthread_t my_guiThread;
 	pthread_t my_mouseThread;
@@ -228,3 +200,32 @@ int guiLaunch()
 	//pthread_exit(NULL);
 	return 0;
 }
+
+int guiSetMainWindows(guiBase* pWin)
+{
+	pWin->Resize(0,0,screenWidth,screenHeight);
+	currentWindows=pWin;
+	mainWindows=pWin;
+	return 0;
+}
+
+int guiPopup(guiBase* pWin)
+{
+	pWin->Resize(50,50,screenWidth-100,screenHeight-100);
+	currentWindows=pWin;
+	popupWindows=pWin;
+	return 0;
+}
+
+int guiExitPopup()
+{
+	if(popupWindows)
+		free(popupWindows);
+	popupWindows=NULL;
+
+	currentWindows=mainWindows;
+	return 0;
+}
+
+
+

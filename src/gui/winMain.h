@@ -5,8 +5,8 @@
  *      Author: Bertrand
  */
 
-#ifndef GUI_GUIMAIN_H_
-#define GUI_GUIMAIN_H_
+#ifndef GUI_WINMAIN_H_
+#define GUI_WINMAIN_H_
 
 #include "guiBase.h"
 #include "guiList.h"
@@ -18,5 +18,6 @@
 
 
 
+int winLaunch();
 
-#endif /* GUI_GUIMAIN_H_ */
+#endif /* GUI_WINMAIN_H_ */

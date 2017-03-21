@@ -20,6 +20,7 @@ public:
 	virtual ~guiPodcast();
 	virtual void Render(void);
 	virtual void Mouse(stMouse* pMouse);
+	void CreatePopup();
 
 	peePodcast* _pPodcast;
 	bool	_selected;

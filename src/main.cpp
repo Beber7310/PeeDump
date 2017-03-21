@@ -20,6 +20,8 @@
 #include "main.h"
 #include "downloader.h"
 
+#include "gui/winMain.h"
+
 stAppContext appContext;
 
 static volatile int keepRunning = 1;
@@ -28,12 +30,12 @@ void intHandler(int dummy) {
     exit(0);
 }
 
-int guiLaunch();
 
 int main(int argc, char *argv[]) {
 
 	signal(SIGINT, intHandler);
 	toolsDownloadInit();
+	system("mpc update");
 
 	// First of all we retrieve user id and token
 	appContext.gUser=toolsGetUser();
@@ -50,7 +52,7 @@ int main(int argc, char *argv[]) {
 	toolsPrintPlaylists(appContext.Playlist);
 
 
-	guiLaunch();
+	winLaunch();
 
 	deezerLaunch(appContext.gToken);
 

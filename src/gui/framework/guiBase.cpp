@@ -125,7 +125,6 @@ void guiBase::RenderRoundRect(int x, int y, int w, int h, int rw, int rh)
 void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 {
 	ovgText( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
-
 }
 
 void guiBase::Polygon(float* x, float* y, int n)

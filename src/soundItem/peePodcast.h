@@ -24,7 +24,8 @@ public:
 	void setTitle(const char*);
 	void setImage(const char*);
 
-	char* _title;
+	char* _titleUTF8;
+	char* _directory;
 	char* _coverHtmplPath;
 	char* _htmlSource; // point on the xml file
 	std::vector<peePodcastTrack*>* _traks;

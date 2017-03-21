@@ -12,7 +12,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <time.h>
-#include <sys/stat.h>
+
 #include <semaphore.h>
 #include <pthread.h>
 
@@ -23,19 +23,13 @@
 #include "deezer.h"
 #include "tools.h"
 #include "main.h"
+#include "downloader.h"
 
 using namespace tinyxml2;
 using namespace std;
 
 
-off_t fileSize(const char *filename) {
-	struct stat st;
 
-	if (stat(filename, &st) == 0)
-		return st.st_size;
-
-	return -1;
-}
 
 uint32_t  toolsGetUser()
 {
@@ -240,42 +234,6 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	return retPlaylist;
 		}
 
-/*
-vector<peePodcast*>* toolsGetUserPodcasts(uint32_t userId)
-{
-	XMLDocument xmlDoc;
-	char url [1024];
-	char *fileBuf;
-
-	sprintf(url,"http://api.deezer.com/user/%i/podcasts&output=xml",userId);
-	fileBuf = toolsGetHtml(url);
-
-	xmlDoc.Parse( fileBuf, strlen(fileBuf));
-	free(fileBuf);
-	XMLNode* podcastNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "podcast");
-
-	vector<peePodcast*>* retPodcast =new std::vector<peePodcast*>;
-
-	while(podcastNode!=NULL)
-	{
-		const char* id;
-		const char* title;
-
-		const char* coverHtmplPath;
-
-		id=podcastNode->FirstChildElement("id")->FirstChild()->Value();
-
-		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
-		coverHtmplPath=podcastNode->FirstChildElement("picture")->FirstChild()->Value();
-
-
-		retPodcast->push_back(new peePodcast(id,title,coverHtmplPath));
-
-		podcastNode=podcastNode->NextSibling();
-	}
-
-	return retPodcast;
-}*/
 
 vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* htmlSource)
 		{
@@ -297,7 +255,7 @@ vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* ht
 
 
 	char szCmd[512];
-	sprintf(szCmd,"mkdir -p \"podcast/%s\"",pParent->_title);
+	sprintf(szCmd,"mkdir -p \"%spodcast/%s\"",DOWNLOAD_ROOT_DIR,pParent->_directory);
 	system(szCmd);
 
 	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
@@ -412,4 +370,56 @@ int toolsGetNext(stAppContext* pContext) {
 	return 0;
 }
 
+
+
+int toolsCleanUTF8(char* szString)
+{
+	int len=strlen(szString);
+	int dst=0;
+	for(int i=0;i<len;i++)
+	{
+		if(szString[i]>0xC0)
+		{
+			i++;
+
+			if((szString[i]==0xa8)||(szString[i]==0xa9)||(szString[i]==0xaa)||(szString[i]==0xab) ) //223 -> é  //232 -> è
+			{
+				szString[dst]='e';
+			}
+			else if((szString[i]==0xa7)) //221 -> ç
+			{
+				szString[dst]='c';
+			}
+			else if((szString[i]==0xa0)||(szString[i]==0xa1)||(szString[i]==0xa2)) //221 -> à
+			{
+				szString[dst]='a';
+			}
+			else if((szString[i]==0xb2)||(szString[i]==0xb3)||(szString[i]==0xb4)) //221 -> à
+			{
+				szString[dst]='o';
+			}
+			else if((szString[i]==0xaf))
+			{
+				szString[dst]='i';
+			}
+			else if((szString[i]==0xbb)||(szString[i]==0x80)||(szString[i]==0xae))
+			{
+				szString[dst]=' ';
+			}
+			else
+			{
+				printf("Missed! 0x%x : %s\n",szString[i],szString);
+			}
+		}
+		else
+		{
+			szString[dst]=szString[i];
+		}
+
+
+		dst++;
+	}
+	szString[dst]=0;
+	return 0;
+}
 

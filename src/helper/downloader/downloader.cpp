@@ -10,6 +10,9 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <list>
+#include <string.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include"peePodcast.h"
 #include"downloader.h"
@@ -19,6 +22,8 @@ using namespace std;
 static sem_t 			semaphorPodcastDownload;
 static pthread_mutex_t 	downloadMutex;
 list<peePodcastTrack*>* podcastDownloadList;
+
+
 
 
 void* toolsDownloadPodcastThread(void * p);
@@ -53,20 +58,54 @@ int toolsDownloadPodcast(peePodcastTrack* pPodcast)
 void* toolsDownloadPodcastThread(void * p)
 {
 	char szCmd[1024];
+	char szPath[1024];
 
 	peePodcastTrack* pPodcast;
 
 	while(1)
 	{
+	
 		sem_wait(&semaphorPodcastDownload);
 		pthread_mutex_lock(&downloadMutex);
 		pPodcast=podcastDownloadList->front();
 		podcastDownloadList->pop_front();
 		pthread_mutex_unlock(&downloadMutex);
 
-
-		sprintf(szCmd,"wget %s -O \"%s\" -q",pPodcast->_htmlPath,pPodcast->_localPath);
+		strcpy(szPath,DOWNLOAD_ROOT_DIR);
+		strcat(szPath,pPodcast->_localPath);
+		
+		sprintf(szCmd,"wget %s -O \"%s\" -q",pPodcast->_htmlPath,szPath);
+		//printf("%s\n",szCmd);
 		system(szCmd);
+		system("mpc update");
+		pPodcast->_downloaded=true;
+
 	}
 	return NULL;
+}
+
+bool  toolsDownloadExist(char * localPath)
+{
+	char szPath[1024];
+
+	strcpy(szPath,DOWNLOAD_ROOT_DIR);
+	strcat(szPath,localPath);
+
+	if(access( szPath, F_OK ) != -1 )
+		return true;
+	return false;
+}
+
+off_t toolsDownloadFileSize(const char *localPath) {
+	struct stat st;
+
+	char szPath[1024];
+
+	strcpy(szPath,DOWNLOAD_ROOT_DIR);
+	strcat(szPath,localPath);
+
+	if (stat(szPath, &st) == 0)
+		return st.st_size;
+
+	return 0;
 }

@@ -33,6 +33,7 @@ void toolsPrintPlaylists(std::vector<peePlaylist*>* pPlaylist);
 void toolsPrintPodcasts(std::vector<peePodcast*>* pPodcasts);
 int toolsGetNext(stAppContext* pContext);
 int toolsGetInput(stMouse* pMouse);
-off_t fileSize(const char *filename);
+int toolsCleanUTF8(char* szString);
+
 
 #endif /* INC_TOOLS_H_ */

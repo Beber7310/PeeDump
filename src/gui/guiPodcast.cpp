@@ -6,6 +6,9 @@
  */
 #include <stddef.h>
 #include "guiPodcast.h"
+#include "guiPodcastTrack.h"
+#include "guiList.h"
+#include "guiRoot.h"
 #include "deezer.h"
 
 guiPodcast::guiPodcast() {
@@ -39,10 +42,9 @@ void guiPodcast::Render(void)
 	ovgFill(255, 255, 255, 1);
 	if(_pPodcast)
 	{
-		RenderText(_x+5,_y+5,_pPodcast->_title,20);
+		RenderText(_x+5,_y+5,_pPodcast->_titleUTF8,20);
 
 	}
-
 }
 
 void guiPodcast::Mouse(stMouse* pMouse)
@@ -56,9 +58,19 @@ void guiPodcast::Mouse(stMouse* pMouse)
 		}
 		else if(pMouse->Click)
 		{
-
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_PODCAST_MP3,_pPodcast->_traks->front()->_localPath);
+			//deezerPostCommand(DEEZER_CMD_LOAD_PODCAST_MP3,_pPodcast->_traks->front()->_localPath);
+			CreatePopup();
 		}
 	}
+}
+
+void guiPodcast::CreatePopup()
+{
+	guiList* popupWindows 	= new guiList();
+	for (vector<peePodcastTrack*>::iterator it = _pPodcast->_traks->begin(); it != _pPodcast->_traks->end(); it++)
+	{
+		popupWindows->AddChild(new guiPodcastTrack(*it));
+	}
+	guiPopup(popupWindows);
 }
