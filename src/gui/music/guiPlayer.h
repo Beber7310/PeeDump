@@ -22,6 +22,8 @@ public:
 
 	int colorNext;
 	int colorPrev;
+	int colorPause;
+
 };
 
 #endif /* GUI_guiPlayer_H_ */

@@ -40,10 +40,12 @@ uint32_t  toolsGetUser()
 	size_t len = 0;
 	ssize_t read;
 
-	stream = fopen("data.conf", "r");
+	stream = fopen("/home/pi/projects/data.conf", "r");
 	if (stream == NULL)
+	{
+		printf("Unable to open /home/pi/projects/data.conf\n");
 		exit(EXIT_FAILURE);
-
+	}
 	while ((read = getline(&line, &len, stream)) != -1) {
 		//printf("Retrieved line of length %zu :\n", read);
 		//printf("%s", line);
@@ -72,17 +74,26 @@ std::vector<peePodcast*>*  toolsGetPodcast(void)
 	std::vector<peePodcast*>*retPodcast =new std::vector<peePodcast*>();
 
 
-	stream = fopen("data.conf", "r");
+	stream = fopen("/home/pi/projects/data.conf", "r");
 	if (stream == NULL)
-		exit(EXIT_FAILURE);
-
+	{
+			printf("Unable to open /home/pi/projects/data.conf\n");
+			exit(EXIT_FAILURE);
+		}
 	while ((read = getline(&line, &len, stream)) != -1) {
-		if(strncmp("podcast:",line,strlen("user:"))==0)
+		if(strncmp("lpodcast:",line,strlen("lpodcast:"))==0)
 		{
-			podCast=&line[strlen("podcast:")];
+			podCast=&line[strlen("lpodcast:")];
 			podCast[strlen(podCast)-1]=0;// remove last char as it is a \n
 
-			retPodcast->push_back(new peePodcast(podCast));
+			retPodcast->push_back(new peePodcast(podCast,100,10));
+		}
+		if(strncmp("spodcast:",line,strlen("spodcast:"))==0)
+		{
+			podCast=&line[strlen("spodcast:")];
+			podCast[strlen(podCast)-1]=0;// remove last char as it is a \n
+
+			retPodcast->push_back(new peePodcast(podCast,100,1));
 		}
 	}
 
@@ -101,9 +112,12 @@ void toolsGetToken(char* pToken)
 	size_t len = 0;
 	ssize_t read;
 
-	stream = fopen("data.conf", "r");
+	stream = fopen("/home/pi/projects/data.conf", "r");
 	if (stream == NULL)
-		exit(EXIT_FAILURE);
+	{
+			printf("Unable to open /home/pi/projects/data.conf\n");
+			exit(EXIT_FAILURE);
+		}
 
 	while ((read = getline(&line, &len, stream)) != -1) {
 		//printf("Retrieved line of length %zu :\n", read);
@@ -130,13 +144,16 @@ void toolsGetToken(char* pToken)
  */
 char * toolsGetHtml(char *url)
 {
-	int ret;
+	int ret=NULL;
 	//char *url = "http://api.deezer.com/user/92847721/albums&output=xml";   	/* Pointer to the url you want */
 	char *fileBuf;						/* Pointer to downloaded data */
 
 	ret = http_fetch(url, &fileBuf);	/* Downloads page */
 	if(ret == -1)						/* All HTTP Fetcher functions return */
-		http_perror("http_fetch");		/*	-1 on error. */
+	{
+		http_perror("http_fetcha");		/*	-1 on error. */
+
+	}
 	else
 	{
 		//	printf("Page successfully downloaded. (%s)\n", url);
@@ -201,7 +218,7 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 		}
 
 std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
-		{
+{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -232,15 +249,16 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	}
 
 	return retPlaylist;
-		}
-
+}
 
 vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* htmlSource)
-		{
+{
 	XMLDocument xmlDoc;
-	char *fileBuf;
-
+	char *fileBuf=NULL;
+	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
 	fileBuf = toolsGetHtml(htmlSource);
+	if(fileBuf==NULL)
+		return retPodcast;
 
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
@@ -253,12 +271,11 @@ vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* ht
 
 	podcastNode = podcastNode->FirstChildElement( "item");
 
-
 	char szCmd[512];
 	sprintf(szCmd,"mkdir -p \"%spodcast/%s\"",DOWNLOAD_ROOT_DIR,pParent->_directory);
 	system(szCmd);
 
-	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
+
 
 	while(podcastNode!=NULL)
 	{
@@ -280,14 +297,70 @@ vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* ht
 		strptime(duration, "%H:%M:%S", &tsDuration);
 		strptime(pubDate, "%a, %d %b %Y %H:%M:%S", &date);
 
-		if(((tsDuration.tm_hour*60)+tsDuration.tm_min)>10)
+		if(((tsDuration.tm_hour*60)+tsDuration.tm_min)>pParent->_minLength)
 			retPodcast->push_back(new peePodcastTrack(pParent,&date,title,htmlMp3,size));
 
 		podcastNode=podcastNode->NextSibling();
 	}
-
 	return retPodcast;
+}
+
+void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource)
+{
+	XMLDocument xmlDoc;
+	char *fileBuf=NULL;
+	fileBuf = toolsGetHtml(htmlSource);
+	if(fileBuf==NULL)
+		return;
+
+	xmlDoc.Parse( fileBuf, strlen(fileBuf));
+	free(fileBuf);
+	XMLNode* podcastNode;
+	podcastNode = xmlDoc.FirstChildElement( "rss" );
+	podcastNode = podcastNode->FirstChildElement( "channel" );
+
+	pParent->setTitle(podcastNode->FirstChildElement( "title")->FirstChild()->Value());
+	pParent->setImage(podcastNode->FirstChildElement( "image")->FirstChildElement( "url")->FirstChild()->Value());
+
+	podcastNode = podcastNode->FirstChildElement( "item");
+
+	char szCmd[512];
+	sprintf(szCmd,"mkdir -p \"%spodcast/%s\"",DOWNLOAD_ROOT_DIR,pParent->_directory);
+	system(szCmd);
+
+	while(podcastNode!=NULL)
+	{
+		tm tsDuration;
+		tm	date;
+		int size;
+		const char*	title;
+		const char*	htmlMp3;
+		const char* duration;
+		const char* pubDate;
+
+		//deprecated, to be updated with the new xml
+		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
+		htmlMp3=podcastNode->FirstChildElement( "enclosure" )->Attribute( "url");
+		size=atoi(podcastNode->FirstChildElement( "enclosure" )->Attribute( "length"));
+		duration=podcastNode->FirstChildElement( "itunes:duration" )->FirstChild()->Value();
+		pubDate=podcastNode->FirstChildElement( "pubDate" )->FirstChild()->Value();
+
+		strptime(duration, "%H:%M:%S", &tsDuration);
+		strptime(pubDate, "%a, %d %b %Y %H:%M:%S", &date);
+
+		if(((tsDuration.tm_hour*60)+tsDuration.tm_min)>pParent->_minLength)
+		{
+			if(pParent->GetTrackByTitle(title)==NULL)
+			{
+				podcastList->push_back(new peePodcastTrack(pParent,&date,title,htmlMp3,size));
+			}
 		}
+
+		podcastNode=podcastNode->NextSibling();
+	}
+	return;
+}
+
 
 void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {
@@ -336,33 +409,6 @@ int toolsGetNext(stAppContext* pContext) {
 			return 1;
 			break;
 
-		case 'S':
-			deezerPostCommand(DEEZER_CMD_START,0);
-			break;
-		case 'R':
-			deezerPostCommand(DEEZER_CMD_RESUME,0);
-			break;
-		case 's':
-			deezerPostCommand(DEEZER_CMD_STOP,0);
-			break;
-		case 'p':
-			toolsPrintAlbums(pContext->Albums);
-			break;
-		case '+':
-			deezerPostCommand(DEEZER_CMD_NEXT,0);
-			break;
-		case '-':
-			deezerPostCommand(DEEZER_CMD_PREV,0);
-			break;
-		case '1':
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(0)->_id);
-			break;
-		case '2':
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(1)->_id);
-			break;
-		case '3':
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,pContext->Albums->at(2)->_id);
-			break;
 		default:
 			return 0;
 			break;
@@ -390,11 +436,11 @@ int toolsCleanUTF8(char* szString)
 			{
 				szString[dst]='c';
 			}
-			else if((szString[i]==0xa0)||(szString[i]==0xa1)||(szString[i]==0xa2)) //221 -> à
+			else if((szString[i]==0xa0)||(szString[i]==0xa1)||(szString[i]==0xa2))
 			{
 				szString[dst]='a';
 			}
-			else if((szString[i]==0xb2)||(szString[i]==0xb3)||(szString[i]==0xb4)) //221 -> à
+			else if((szString[i]==0xb2)||(szString[i]==0xb3)||(szString[i]==0xb4))
 			{
 				szString[dst]='o';
 			}
@@ -408,12 +454,17 @@ int toolsCleanUTF8(char* szString)
 			}
 			else
 			{
-				printf("Missed! 0x%x : %s\n",szString[i],szString);
+				i++;
+				//printf("Missed! 0x%x : %s\n",szString[i],szString);
 			}
+		}
+		else if(isalnum(szString[i]) || szString[i]==' '|| szString[i]=='/'|| szString[i]=='.')
+		{
+			szString[dst]=szString[i];
 		}
 		else
 		{
-			szString[dst]=szString[i];
+			szString[dst]=' ';
 		}
 
 

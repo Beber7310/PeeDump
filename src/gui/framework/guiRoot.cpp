@@ -211,7 +211,7 @@ int guiSetMainWindows(guiBase* pWin)
 
 int guiPopup(guiBase* pWin)
 {
-	pWin->Resize(50,50,screenWidth-100,screenHeight-100);
+	pWin->Resize(0,0,screenWidth,screenHeight);
 	currentWindows=pWin;
 	popupWindows=pWin;
 	return 0;

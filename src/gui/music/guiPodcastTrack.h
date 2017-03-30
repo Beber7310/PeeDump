@@ -23,6 +23,7 @@ public:
 
 	peePodcastTrack* _pTrack;
 	bool	_selected;
+	int 	_color;
 };
 
 #endif /* GUI_guiPodcastTrack_H_ */

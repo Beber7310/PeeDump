@@ -85,23 +85,22 @@ void guiTabLayout::Mouse(stMouse* pMouse)
 		}
 		else if(pMouse->LastTouch)
 		{
+			if((pMouse->x-mouseOriginX)>100)
+			{
+				_xTarget=_xOrigin+_cx;
+			}
+			if((pMouse->x-mouseOriginX)<-100)
+			{
+				_xTarget=_xOrigin-_cx;
+			}
+
+
+			_xTarget=(_xTarget>0)?0:_xTarget;
+			_xTarget=(_xTarget<(-_cx*(nbrChild-1)))?(-_cx*(nbrChild-1)):_xTarget;
 
 			_xOrigin+=_xOriginTemp;
 			_xOriginTemp=0;
 
-			float ftmp=fmod(_xOrigin,600.0);
-			//printf("ftmp %f origin %i\n",ftmp,_xOrigin);
-
-			if(ftmp<-300)
-				_xTarget=_xOrigin-_cx-ftmp;
-			else
-				_xTarget=_xOrigin-ftmp;
-
-			//printf("_xTarget %i \n",_xTarget);
-		/*	if(_xTarget<-(nbrChild-1)*_cx)
-			{
-				_xTarget=-(nbrChild-1)*_cx;
-			}*/
 		}
 		else
 		{

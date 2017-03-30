@@ -13,12 +13,14 @@ guiPlaylist::guiPlaylist() {
 	_cy=200;
 	_pPlaylist=NULL;
 	_selected=false;
+	_color=232;
 }
 
 guiPlaylist::guiPlaylist(peePlaylist* pPlaylist) {
 	_cy=100;
 	_pPlaylist=pPlaylist;
 	_selected=false;
+	_color=232;
 }
 
 guiPlaylist::~guiPlaylist() {
@@ -27,19 +29,18 @@ guiPlaylist::~guiPlaylist() {
 
 void guiPlaylist::Render(void)
 {
-	if(_selected){
-		ovgFill(44, 77, 232, 1);
-	}
-	else
-	{
-		ovgFill(232, 77, 44, 1);
-	}
+	_color++;
+	if(_color>232)
+		_color=232;
+
+	ovgFill(44, 77, _color, 1);
+
 
 	RenderRoundRect(_x, _y, _cx, _cy, 25, 25);
 	ovgFill(255, 255, 255, 1);
 	if(_pPlaylist)
 	{
-		RenderText(_x+5,_y+5,_pPlaylist->_name,20);
+		RenderText(_x+5,_y+5,_pPlaylist->_name,25);
 	}
 
 }
@@ -55,9 +56,9 @@ void guiPlaylist::Mouse(stMouse* pMouse)
 		}
 		else if(pMouse->Click)
 		{
-
+			_color=100;
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_PLAYLIST,_pPlaylist->_id);
+			deezerPostCommand(DEEZER_CMD_LOAD_PLAYLIST,_pPlaylist->_id,_pPlaylist->_name);
 		}
 
 

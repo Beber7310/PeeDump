@@ -11,6 +11,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
@@ -23,10 +24,17 @@
 
 peePodcastTrack::peePodcastTrack() {
 	// TODO Auto-generated constructor stub
+	_title=NULL;
+	_htmlPath=NULL;
+	_localPath=NULL;
+	_size=0;
+	_downloaded=false;
 }
 
 peePodcastTrack::peePodcastTrack(peePodcast *pParent,tm* date, const char* title,const char* htmlPath,int size) {
 	// TODO Auto-generated constructor stub
+	char szTmpTitle[512];
+
 	memcpy(&_date,date,sizeof(tm));
 
 	_title=(char*)malloc(strlen(title)+1);
@@ -46,14 +54,29 @@ peePodcastTrack::peePodcastTrack(peePodcast *pParent,tm* date, const char* title
 	strcat (_localPath,"/");
 	strcat (_localPath,strtime);
 	strcat (_localPath,"-");
-	strcat (_localPath,title);
+
+	strcpy(szTmpTitle,title);
+	int len=strlen(title);
+
+	for(int ii=0;ii<len;ii++)
+	{
+		if(szTmpTitle[ii]=='/')
+			szTmpTitle[ii]=' ';
+	}
+
+
+	strcat (_localPath,szTmpTitle);
 	strcat (_localPath,".mp3");
 
 	toolsCleanUTF8(_localPath);
 
-	_downloaded =false;
+	_downloaded = false;
 
 	checkDownload();
+	if(!_downloaded)
+	{
+		toolsDownloadPodcast(this);
+	}
 }
 
 
@@ -67,7 +90,7 @@ void peePodcastTrack::checkDownload(void)
 		if(realSize<(9*(_size/10)))
 		{
 			_downloaded=false;
-			//printf("Pod cast %s wrong size expecting %i get %i\n",_localPath,_size,realSize);
+			printf("Pod cast %s wrong size expecting %i get %i\n",_localPath,_size,realSize);
 		}
 		else
 		{
@@ -77,18 +100,20 @@ void peePodcastTrack::checkDownload(void)
 	else
 	{
 		_downloaded=false;
-		//printf("Pod cast %s not existing\n",_localPath);
+		printf("Pod cast %s not existing\n",_localPath);
 	}
 
-	if(!_downloaded)
-	{
-		//DOWNLOAD HERE
-		toolsDownloadPodcast(this);
-	}
+
 }
 
 
 peePodcastTrack::~peePodcastTrack() {
 	// TODO Auto-generated destructor stub
+	if(_title)
+		free(_title);
+	if(_htmlPath)
+		free(_htmlPath);
+	if(_localPath)
+		free(_localPath);
 }
 

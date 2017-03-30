@@ -19,21 +19,19 @@
 #include "deezer.h"
 #include "main.h"
 #include "downloader.h"
-
+#include "homeControl.h"
 #include "gui/winMain.h"
 
 stAppContext appContext;
 
-static volatile int keepRunning = 1;
-void intHandler(int dummy) {
-	printf("ctrlC\n");
-    exit(0);
-}
-
 
 int main(int argc, char *argv[]) {
 
-	signal(SIGINT, intHandler);
+	homeControl* pHome=new homeControl();
+
+
+	pHome->refreshData();
+	system("pulseaudio -D");
 	toolsDownloadInit();
 	system("mpc update");
 
@@ -48,15 +46,29 @@ int main(int argc, char *argv[]) {
 	//appContext.Podcasts=toolsGetUserPodcasts(appContext.gUser);
 
 
-	toolsPrintAlbums(appContext.Albums);
-	toolsPrintPlaylists(appContext.Playlist);
+	//toolsPrintAlbums(appContext.Albums);
+	//toolsPrintPlaylists(appContext.Playlist);
 
 
 	winLaunch();
 
 	deezerLaunch(appContext.gToken);
 
-	while(!toolsGetNext(&appContext));
+	homeControlLaunch();
+
+	//while(!toolsGetNext(&appContext));
+
+	while(1)
+	{
+		int ii;
+
+		for(ii=0;ii<appContext.Podcasts->size();ii++)
+		{
+			appContext.Podcasts->at(ii)->updatePodcast();
+		}
+		sleep(60*60);
+
+	}
 }
 
 

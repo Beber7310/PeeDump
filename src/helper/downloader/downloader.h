@@ -14,4 +14,5 @@ void toolsDownloadInit(void);
 int toolsDownloadPodcast(peePodcastTrack* peePodcast);
 bool  toolsDownloadExist(char * localPath);
 off_t toolsDownloadFileSize(const char *filename);
+bool compare_podcast (const peePodcastTrack* first, const peePodcastTrack* second);
 #endif /* HELPER_DOWNLOADER_DOWNLOADER_H_ */

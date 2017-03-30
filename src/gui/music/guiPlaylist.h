@@ -23,6 +23,7 @@ public:
 
 	peePlaylist* _pPlaylist;
 	bool	_selected;
+	int _color;
 };
 
 #endif /* GUI_guiPlaylist_H_ */

@@ -35,6 +35,18 @@ guiBase::guiBase() {
 
 guiBase::~guiBase() {
 	// TODO Auto-generated destructor stub
+	guiBase* pG;
+	if(_ChildFirst)
+	{
+		while(_ChildFirst)
+		{
+			pG=_ChildFirst;
+			_ChildFirst=_ChildFirst->_BrotherNext;
+			free(pG);
+		}
+	}
+	nbrChild++;
+
 }
 void guiBase::SetName(const char * pName)
 {
@@ -89,7 +101,7 @@ void guiBase::Mouse(stMouse* pMouse)
 	{
 		mouseFirstTouch=true;
 		pMouse->LastTouch=true;
-		if((abs(pMouse->x-mouseOriginX)<5) && (abs(pMouse->y-mouseOriginY)<5))
+		if((abs(pMouse->x-mouseOriginX)<10) && (abs(pMouse->y-mouseOriginY)<10))
 			pMouse->Click=true;
 	}else if(pMouse->t==false && mouseFirstTouch==true)// no finger on the screen
 	{
@@ -127,6 +139,7 @@ void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 	ovgText( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
 }
 
+
 void guiBase::Polygon(float* x, float* y, int n)
 {
 	for(int ii=0;ii<n;ii++)
@@ -136,5 +149,11 @@ void guiBase::Polygon(float* x, float* y, int n)
 
 	ovgPolygon((float*)x, (float*)y, n);
 }
+
+void guiBase::Line(int x1, int y1, int x2, int y2)
+{
+	ovgLine(x1,y1,x2,y2);
+}
+
 
 

@@ -29,24 +29,25 @@
 #include "peePlaylist.h"
 #include "main.h"
 #include "winMain.h"
+#include "homeControl.h"
 
 
 
 
 guiBase* guiBuild()
 {
-	guiList* 		albumsWindows 	= new guiList();
-	guiList* 		playlistWindows = new guiList();
-	guiList* 		podcastWindows  = new guiList();
-	guiPlayer* 		playerWindows   = new guiPlayer();
-	guiTabLayout*	tabLayout		= new guiTabLayout();
+	guiList* 			albumsWindows 		= new guiList();
+	guiList* 			playlistWindows 	= new guiList();
+	guiList* 			podcastWindows  	= new guiList();
+	guiList* 			homecontrolWindows  = new guiList();
+	guiPlayer* 			playerWindows   	= new guiPlayer();
+	guiTabLayout*		tabLayout			= new guiTabLayout();
+	guiVerticalSplit*	verticalSplit		= new guiVerticalSplit();
 
 	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
 	{
 		albumsWindows->AddChild(new guiAlbum(*it));
 	}
-
-
 
 	for (vector<peePlaylist*>::iterator it = appContext.Playlist->begin(); it != appContext.Playlist->end(); it++)
 	{
@@ -58,17 +59,35 @@ guiBase* guiBuild()
 		podcastWindows->AddChild(new guiPodcast(*it));
 	}
 
+	homecontrolWindows->AddChild(new guiCourant());
+	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_EXTERIEUR));
+	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_SALON));
+	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_CUISINE));
+	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_BARNABE));
+	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_DAPHNEE));
+	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_VICTOR));
+	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_PARENT));
+	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_HOMECINEMA));
+	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_GARAGE));
+
+
+
 	playlistWindows->SetName("Playlists");
 	albumsWindows->SetName("Albums");
 	podcastWindows->SetName("Podcasts");
 	playerWindows->SetName("Player");
+	homecontrolWindows->SetName("Home Control");
 
-	tabLayout->AddChild(playerWindows);
+	//tabLayout->AddChild(playerWindows);
 	tabLayout->AddChild(playlistWindows);
 	tabLayout->AddChild(albumsWindows);
 	tabLayout->AddChild(podcastWindows);
+	tabLayout->AddChild(homecontrolWindows);
 
-	return tabLayout;
+	verticalSplit->AddChild(tabLayout);
+	verticalSplit->AddChild(playerWindows);
+
+	return verticalSplit;
 }
 
 

@@ -28,6 +28,7 @@ static __inline int sleep(int s) {
 
 static sem_t semaphorDeezer;
 
+static bool mpcPause=false;
 
 #define log(fmt, ...) printf("[%s:%d]" fmt, __FILE__, __LINE__, ##__VA_ARGS__);
 
@@ -36,11 +37,15 @@ struct deezerCmd_st
 {
 	uint32_t Cmd;
 	const char* Arg;
+	const char* NameToDisplay;
 }deezerCmd[16];
 
-static int deezerCmdIndexWr=0;
-static int deezerCmdIndexRd=0;
+static int 		deezerCmdIndexWr=0;
+static int 		deezerCmdIndexRd=0;
+static char*	szCurrentSong;
 
+static char	szNone[]="";
+static char	szLoading[]="Loading...";
 
 typedef struct {
 	int                   nb_track_played;
@@ -102,6 +107,8 @@ static void app_player_onevent_cb(dz_player_handle handle,
 
 int mainDeezer(void* voidtoken) {
 	char* token=(char*)voidtoken;
+
+	szCurrentSong=szNone;
 
 	struct dz_connect_configuration config;
 	dz_error_t dzerr = DZ_ERROR_NO_ERROR;
@@ -332,15 +339,15 @@ static void app_change_content(char * content) {
 }
 
 static void app_play_afterload(
-    void* delegate,
-    void* operation_userdata,
-    dz_error_t status,
-    dz_object_handle result)
+		void* delegate,
+		void* operation_userdata,
+		dz_error_t status,
+		dz_object_handle result)
 {
 	dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
 	dz_player_play(app_ctxt->dzplayer, NULL, NULL,
-					DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
-					DZ_INDEX_IN_QUEUELIST_CURRENT);
+			DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
+			DZ_INDEX_IN_QUEUELIST_CURRENT);
 }
 
 static void app_load_content() {
@@ -390,9 +397,11 @@ static void app_playback_pause_or_resume() {
 	if (app_ctxt->is_playing) {
 		log("PAUSE track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_pause(app_ctxt->dzplayer, NULL, NULL);
+		app_ctxt->is_playing=false;
 	} else {
 		log("RESUME track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_resume(app_ctxt->dzplayer, NULL, NULL);
+		app_ctxt->is_playing=true;
 	}
 }
 
@@ -401,6 +410,7 @@ static void app_playback_pause() {
 	if (app_ctxt->is_playing) {
 		log("PAUSE track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_pause(app_ctxt->dzplayer, NULL, NULL);
+		app_ctxt->is_playing=false;
 	}
 }
 
@@ -409,6 +419,7 @@ static void app_playback_resume() {
 	if (!app_ctxt->is_playing) {
 		log("RESUME track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_resume(app_ctxt->dzplayer, NULL, NULL);
+		app_ctxt->is_playing=true;
 	}
 }
 
@@ -617,36 +628,24 @@ static void dz_player_on_deactivate(void*            delegate,
 			status);
 }
 
-static void app_commands_display() {
 
-	log("\n#########  MENU  #########\n");
-	log("   - Please press key for comands:  -\n");
-	log("  P : PLAY / PAUSE\n");
-	log("  S : START/STOP\n");
-	log("  + : NEXT\n");
-	log("  - : PREVIOUS\n");
-	log("  R : NEXT REPEAT MODE\n");
-	log("  ? : TOGGLE SHUFFLE MODE\n");
-	log("  Q : QUIT\n");
-	log("  [1-4] : LOAD CONTENT [1-4]\n");
-	log("\n##########################\n\n");
-
-}
 static void app_commands_get_next() {
 
 	char strBuf[1024];
 	int cmd;
 	char* arg;
+	char* name;
 	sem_wait(&semaphorDeezer);
 
 	cmd=deezerCmd[deezerCmdIndexRd].Cmd;
 	arg=deezerCmd[deezerCmdIndexRd].Arg;
+	name=deezerCmd[deezerCmdIndexRd].NameToDisplay;
 	deezerCmdIndexRd++;
 	if(deezerCmdIndexRd>15)
 		deezerCmdIndexRd=0;
 
 
-	printf("Deezer cmd%i arg%i",cmd,arg);
+	printf("Deezer cmd%i arg%i\n",cmd,arg);
 	switch (cmd) {
 		case DEEZER_CMD_START:
 			app_playback_start();
@@ -659,7 +658,19 @@ static void app_commands_get_next() {
 			app_playback_resume();
 			break;
 		case DEEZER_CMD_PAUSE:
-			app_playback_pause();
+			app_playback_pause_or_resume();
+			if(mpcPause)
+			{
+				sprintf(strBuf,"mpc play",arg);
+				system(strBuf);//launch mp3 player
+				mpcPause=0;
+			}
+			else
+			{
+				sprintf(strBuf,"mpc pause",arg);
+				system(strBuf);//launch mp3 player
+				mpcPause=1;
+			}
 			break;
 
 		case DEEZER_CMD_NEXT:
@@ -684,29 +695,33 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_LOAD_ALBUM:
-			system("mpc stop");
+			system("mpc clear");
 			sprintf(strBuf,"dzmedia:///album/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
+			szCurrentSong=name;
 			break;
 		case DEEZER_CMD_LOAD_PLAYLIST:
-			system("mpc stop");
+			system("mpc clear");
 			sprintf(strBuf,"dzmedia:///playlist/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
+			szCurrentSong=name;
 			break;
 		case DEEZER_CMD_LOAD_PODCAST:
-			system("mpc stop");
+			system("mpc clear");
 			sprintf(strBuf,"dzmedia:///show/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
+			szCurrentSong=name;
 			break;
 		case DEEZER_CMD_LOAD_PODCAST_MP3:
 			app_playback_stop();
+			mpcPause=0;
 			sprintf(strBuf,"mpc clear;mpc add \"%s\";mpc play",arg);
 			printf("%s\n",strBuf);
 			system(strBuf);//launch mp3 player
-
+			szCurrentSong=name;
 			break;
 	}
 }
@@ -729,14 +744,22 @@ int deezerLaunch(char* token)
 }
 
 
-int deezerPostCommand(uint32_t cmd,const char* arg )
+int deezerPostCommand(uint32_t cmd,const char* arg,const char* name )
 {
 
 	deezerCmd[deezerCmdIndexWr].Cmd=cmd;
 	deezerCmd[deezerCmdIndexWr].Arg=arg;
+	deezerCmd[deezerCmdIndexWr].NameToDisplay=name;
+
 	deezerCmdIndexWr++;
 	if(deezerCmdIndexWr>15)
 		deezerCmdIndexWr=0;
 
 	sem_post(&semaphorDeezer);
 }
+
+char* deezerGetSongName()
+{
+	return szCurrentSong;
+}
+

@@ -15,6 +15,10 @@
 #include "guiPlaylist.h"
 #include "guiPodcast.h"
 #include "guiPlayer.h"
+#include "guiVerticalSplit.h"
+#include "guiThermo.h"
+#include "guiHeater.h"
+#include "guiCourant.h"
 
 
 
