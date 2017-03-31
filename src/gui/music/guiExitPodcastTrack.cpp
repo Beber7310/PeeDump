@@ -28,7 +28,7 @@ void guiExitPodcastTrack::Render(void)
 	ovgFill(232, 77, 44, 1);
 	RenderRoundRect(_x, _y, _cx, _cy, 25, 25);
 	ovgFill(255, 255, 255, 1);
-	RenderText(_x+250,_y+20,"Back",30);
+	RenderTextMid(_x+_cx/2,_y+20,"Back",30);
 
 }
 

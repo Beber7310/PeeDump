@@ -17,6 +17,7 @@ guiPodcast::guiPodcast() {
 	// TODO Auto-generated constructor stub
 	_cy=100;
 	_pPodcast=NULL;
+	_selected=false;
 }
 
 guiPodcast::guiPodcast(peePodcast* pPodcast) {

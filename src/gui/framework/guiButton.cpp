@@ -1,48 +1,55 @@
 /*
- * guiThermo.cpp
+ * guiButton.cpp
  *
  *  Created on: 13 mars 2017
  *      Author: Bertrand
  */
+#include <guiButton.h>
+#include <guiRoot.h>
 #include <stddef.h>
-#include "guiThermo.h"
 #include "homeControl.h"
+#include "stdlib.h"
 
-guiThermo::guiThermo() {
+guiButton::guiButton() {
 	// TODO Auto-generated constructor stub
 	_cy=100;
 	_color=232;
-	_id=0;
+	_text=NULL;
+	_policeSize=12;
 }
 
-guiThermo::guiThermo(int id) {
+guiButton::guiButton(char* text,int size) {
 	_cy=100;
 	_color=232;
-	_id=id;
+	SetText(text);
+	_policeSize=size;
 }
 
-guiThermo::~guiThermo() {
+
+guiButton::~guiButton() {
 	// TODO Auto-generated destructor stub
 }
 
-void guiThermo::Render(void)
+void guiButton::SetText(char* text)
 {
-	char szBuf[128];
-	_color+=2;
+	_text=(char*)malloc(strlen(text)+1);
+	strcpy(_text,text);
+}
+
+void guiButton::Render(void)
+{
+	_color++;
 		if(_color>232)
 			_color=232;
 	ovgFill(44, 77, _color, 1);
 
-
 	RenderRoundRect(_x, _y, _cx, _cy, 25, 25);
 	ovgFill(255, 255, 255, 1);
 
-	sprintf(szBuf,"%2.1f",hcGetTemp(_id));
-	RenderText(_x+5,_y+15,hcGetName(_id),25);
-	RenderText(_x+450,_y+15,szBuf,40);
+	RenderTextMid(_x+_cx/2,(_y+_cy/2)-_policeSize/2,_text,_policeSize);
 }
 
-void guiThermo::Mouse(stMouse* pMouse)
+void guiButton::Mouse(stMouse* pMouse)
 {
 	guiBase::Mouse(pMouse);
 	if(MouseIsInWindows(pMouse))

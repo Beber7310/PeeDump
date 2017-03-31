@@ -53,6 +53,9 @@ void* guiThread(void * p) {
 	struct timeval tv;
 	unsigned long lasttime;
 	unsigned long microseconds;
+
+	int lastUpdate=0;
+
 	ovginit(&screenWidth, &screenHeight,&guiVSyncCallBack);				   // Graphics initialization
 
 	//guiBase* mainWindows=guiBuild();
@@ -65,12 +68,6 @@ void* guiThread(void * p) {
 		gettimeofday(&tv, NULL);
 		lasttime = (tv.tv_sec*1000000)+tv.tv_usec;
 
-		pthread_mutex_lock(&mousseLock);
-		localMouse.x=((stMouse*) p)->x;
-		localMouse.y=((stMouse*) p)->y;
-		localMouse.t=((stMouse*) p)->t;
-		pthread_mutex_unlock(&mousseLock);
-
 		ovgStart(screenWidth, screenHeight);				   // Start the picture
 
 		ovgBackground(0, 0, 0);				   // Black background
@@ -78,20 +75,30 @@ void* guiThread(void * p) {
 
 		if(currentWindows)
 		{
-			currentWindows->Mouse(&localMouse);
+			pthread_mutex_lock(&mousseLock);
+			if(((stMouse*) p)->update!=lastUpdate)
+			{
+				localMouse.x=((stMouse*) p)->x;
+				localMouse.y=((stMouse*) p)->y;
+				localMouse.t=((stMouse*) p)->t;
+
+				currentWindows->Mouse(&localMouse);
+				lastUpdate=((stMouse*) p)->update;
+			}
+			pthread_mutex_unlock(&mousseLock);
+
 			currentWindows->Render();
 		}
+
+
 		//pthread_mutex_lock(&vSynclock);
 		gettimeofday(&tv, NULL);
 		microseconds = (tv.tv_sec*1000000)+tv.tv_usec;
 
 		//printf("sync  %lu \n", microseconds-lasttime);
 
-
 		ovgEnd(); //Moved in callback						   // End the picture
-
 	}
-
 }
 
 void* guiMouseThread(void * p)
@@ -103,6 +110,8 @@ void* guiMouseThread(void * p)
 	char name[256] = "Unknown";
 	pMouse=(stMouse*)p;
 	bool update=false;
+	pMouse->update=0;
+
 	/* Open Device */
 	fd = open(EVENT_DEVICE, O_RDONLY);
 	if (fd == -1) {
@@ -160,6 +169,7 @@ void* guiMouseThread(void * p)
 			pMouse->x=600-y; // swap on purpose !!!
 			pMouse->y=x; // swap on purpose !!!
 			pMouse->t=t;
+			pMouse->update++;
 			pthread_mutex_unlock(&mousseLock);
 		}
 	}

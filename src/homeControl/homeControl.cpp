@@ -62,6 +62,14 @@ homeControl::homeControl() {
 	_HomeSensor[HC_TEMP_PARENT].httpName="Parent";
 	_HomeSensor[HC_TEMP_PARENT].niceName="Parent";
 	_HomeSensor[HC_TEMP_PARENT].temp=0.0f;
+
+
+	_HomeLight[HC_LIGHT_VMC].httpName="LIGHT_VMC";
+	_HomeLight[HC_LIGHT_VMC].niceName="VMC";
+
+	_HomeLight[HC_LIGHT_DISCO].httpName="LIGHT_Ampoule_Disco";
+	_HomeLight[HC_LIGHT_DISCO].niceName="Disco";
+
 }
 
 homeControl::~homeControl() {
@@ -78,6 +86,11 @@ void homeControl::refreshData(void)
 	{
 		_HomeSensor[ii].targetTemp=readTargetTempfromRPI(_HomeSensor[ii].httpName);
 	}
+	for(int ii=0;ii<HC_LAST_HEATER;ii++)
+	{
+		_HomeSensor[ii].heating=readCurrentHeatingfromRPI(_HomeSensor[ii].httpName);
+	}
+
 	_current=readCurrentfromRPI();
 }
 
@@ -95,10 +108,36 @@ float hcGetTargetTemp(int ii)
 	else
 		return 0;
 }
+float hcGetHeating(int ii)
+{
+	if(ii<HC_LAST)
+		return  hc._HomeSensor[ii].heating;
+	else
+		return 0;
+}
+
+void hcSetTargetTemp(int ii,float target)
+{
+	if(ii<HC_LAST)
+	{
+		hc.writreTargetTempfromRPI(hc._HomeSensor[ii].httpName,target);
+		hc._HomeSensor[ii].targetTemp=hc.readTargetTempfromRPI(hc._HomeSensor[ii].httpName);
+	}
+}
+
+
 char* hcGetName(int ii)
 {
 	if(ii<HC_LAST)
 		return   hc._HomeSensor[ii].niceName;
+	else
+		return 0;
+}
+
+char* hcGetLightName(int ii)
+{
+	if(ii<HC_LAST)
+		return   hc._HomeLight[ii].niceName;
 	else
 		return 0;
 }
@@ -109,8 +148,14 @@ float hcGetCourant()
 }
 
 
+void hcSetLight(int ii,bool state)
+{
+	if(ii<HC_LIGHT_LAST)
+		hc.writreLight(hc._HomeLight[ii].httpName,state);
 
- float  homeControl::readTempfromRPI(char* name)
+}
+
+float  homeControl::readTempfromRPI(char* name)
 {
 	char* szResultat;
 	char* pch;
@@ -157,6 +202,74 @@ float  homeControl::readTargetTempfromRPI(char* name)
 	if(!pch){printf("Error in readTargetTempfromRPI");return -100;}
 	temp = atof(pch);
 
+
+
+	if(szResultat)
+		free(szResultat);
+
+	return temp;
+
+}
+
+int  homeControl::readCurrentHeatingfromRPI(char* name)
+{
+	char* szResultat;
+	char* pch;
+	char szCmd[512];
+	int temp=0;
+
+	sprintf(szCmd,"http://%s/hc_thermostat?%s/status",HOMECONTROL_IP,name);
+	//printf(szCmd);
+	http_fetch(szCmd,&szResultat);
+
+
+
+	pch = strtok(szResultat,":");
+	if(!pch){printf("Error in readTargetTempfromRPI");return -100;}
+	pch = strtok(NULL,":");
+	if(!pch){printf("Error in readTargetTempfromRPI");return -100;}
+	pch = strtok(NULL,":");
+	if(!pch){printf("Error in readTargetTempfromRPI");return -100;}
+	pch = strtok(NULL,":");
+	if(!pch){printf("Error in readTargetTempfromRPI");return -100;}
+	temp = atoi(pch);
+
+	if(szResultat)
+		free(szResultat);
+
+	return temp;
+
+}
+
+float  homeControl::writreTargetTempfromRPI(char* name,float target)
+{
+	char* szResultat;
+	char* pch;
+	char szCmd[512];
+	float temp=0.0;
+
+	sprintf(szCmd,"http://%s/hc_thermostat?%s/cmd/%2.2f",HOMECONTROL_IP,name,target);
+	//printf("%s\n",szCmd);
+	http_fetch(szCmd,&szResultat);
+
+	if(szResultat)
+		free(szResultat);
+
+	return temp;
+
+}
+
+float  homeControl::writreLight(char* name,bool state)
+{
+	char* szResultat;
+	char* pch;
+	char szCmd[512];
+	float temp=0.0;
+	http://192.168.1.26:8080/hc_cmd?LIGHT_VMC=0
+	sprintf(szCmd,"http://%s/hc_cmd?%s=%i",HOMECONTROL_IP,name,state);
+	//printf("%s\n",szCmd);
+	http_fetch(szCmd,&szResultat);
+
 	if(szResultat)
 		free(szResultat);
 
@@ -190,37 +303,37 @@ float  homeControl::readCurrentfromRPI()
 }
 
 
- void* hcThread(void * p)
- {
+void* hcThread(void * p)
+{
 
 
-	 while(1)
-	 {
-		 hc.refreshData();
-		 sleep(1);
-	 }
+	while(1)
+	{
+		hc.refreshData();
+		sleep(1);
+	}
 
 
- }
+}
 
- int homeControlLaunch(void)
- {
- 	pthread_t my_hcThread;
- 	int ret;
-
-
- 	if (pthread_mutex_init(&hcLock, NULL) != 0)
- 	{
- 		printf("\n hcLock  mutex init failed\n");
- 		return 1;
- 	}
+int homeControlLaunch(void)
+{
+	pthread_t my_hcThread;
+	int ret;
 
 
- 	ret =  pthread_create(&my_hcThread, NULL, &hcThread,NULL);
- 	if(ret != 0) {
- 		printf("Error: pthread_create() failed\n");
- 		exit(EXIT_FAILURE);
- 	}
+	if (pthread_mutex_init(&hcLock, NULL) != 0)
+	{
+		printf("\n hcLock  mutex init failed\n");
+		return 1;
+	}
 
- 	return 0;
- }
+
+	ret =  pthread_create(&my_hcThread, NULL, &hcThread,NULL);
+	if(ret != 0) {
+		printf("Error: pthread_create() failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	return 0;
+}

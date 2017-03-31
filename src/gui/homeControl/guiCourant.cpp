@@ -26,7 +26,7 @@ guiCourant::~guiCourant() {
 void guiCourant::Render(void)
 {
 	char szBuf[128];
-	_color++;
+	_color+=2;
 		if(_color>232)
 			_color=232;
 	ovgFill(44, 77, _color, 1);
@@ -36,8 +36,8 @@ void guiCourant::Render(void)
 	ovgFill(255, 255, 255, 1);
 
 	sprintf(szBuf,"%2.1f",hcGetCourant());
-	RenderText(_x+5,_y+5,"Courant",25);
-	RenderText(_x+450,_y+5,szBuf,40);
+	RenderText(_x+5,_y+15,"Courant",25);
+	RenderText(_x+450,_y+15,szBuf,40);
 }
 
 void guiCourant::Mouse(stMouse* pMouse)

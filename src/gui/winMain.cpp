@@ -60,6 +60,8 @@ guiBase* guiBuild()
 	}
 
 	homecontrolWindows->AddChild(new guiCourant());
+	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_VMC));
+	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_DISCO));
 	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_EXTERIEUR));
 	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_SALON));
 	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_CUISINE));

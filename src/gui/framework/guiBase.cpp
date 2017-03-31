@@ -139,6 +139,11 @@ void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 	ovgText( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
 }
 
+void guiBase::RenderTextMid(int x, int y, const char *s, int pointsize)
+{
+	ovgTextMid( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
+}
+
 
 void guiBase::Polygon(float* x, float* y, int n)
 {

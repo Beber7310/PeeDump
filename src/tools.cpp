@@ -152,7 +152,7 @@ char * toolsGetHtml(char *url)
 	if(ret == -1)						/* All HTTP Fetcher functions return */
 	{
 		http_perror("http_fetcha");		/*	-1 on error. */
-
+		return NULL;
 	}
 	else
 	{
@@ -251,60 +251,6 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	return retPlaylist;
 }
 
-vector<peePodcastTrack*>* toolsGetUserPodcastTracks(peePodcast* pParent,char* htmlSource)
-{
-	XMLDocument xmlDoc;
-	char *fileBuf=NULL;
-	vector<peePodcastTrack*>* retPodcast =new std::vector<peePodcastTrack*>;
-	fileBuf = toolsGetHtml(htmlSource);
-	if(fileBuf==NULL)
-		return retPodcast;
-
-	xmlDoc.Parse( fileBuf, strlen(fileBuf));
-	free(fileBuf);
-	XMLNode* podcastNode;
-	podcastNode = xmlDoc.FirstChildElement( "rss" );
-	podcastNode = podcastNode->FirstChildElement( "channel" );
-
-	pParent->setTitle(podcastNode->FirstChildElement( "title")->FirstChild()->Value());
-	pParent->setImage(podcastNode->FirstChildElement( "image")->FirstChildElement( "url")->FirstChild()->Value());
-
-	podcastNode = podcastNode->FirstChildElement( "item");
-
-	char szCmd[512];
-	sprintf(szCmd,"mkdir -p \"%spodcast/%s\"",DOWNLOAD_ROOT_DIR,pParent->_directory);
-	system(szCmd);
-
-
-
-	while(podcastNode!=NULL)
-	{
-		tm tsDuration;
-		tm	date;
-		int size;
-		const char*	title;
-		const char*	htmlMp3;
-		const char* duration;
-		const char* pubDate;
-
-		//deprecated, to be updated with the new xml
-		title=podcastNode->FirstChildElement("title")->FirstChild()->Value();
-		htmlMp3=podcastNode->FirstChildElement( "enclosure" )->Attribute( "url");
-		size=atoi(podcastNode->FirstChildElement( "enclosure" )->Attribute( "length"));
-		duration=podcastNode->FirstChildElement( "itunes:duration" )->FirstChild()->Value();
-		pubDate=podcastNode->FirstChildElement( "pubDate" )->FirstChild()->Value();
-
-		strptime(duration, "%H:%M:%S", &tsDuration);
-		strptime(pubDate, "%a, %d %b %Y %H:%M:%S", &date);
-
-		if(((tsDuration.tm_hour*60)+tsDuration.tm_min)>pParent->_minLength)
-			retPodcast->push_back(new peePodcastTrack(pParent,&date,title,htmlMp3,size));
-
-		podcastNode=podcastNode->NextSibling();
-	}
-	return retPodcast;
-}
-
 void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource)
 {
 	XMLDocument xmlDoc;
@@ -360,7 +306,6 @@ void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodca
 	}
 	return;
 }
-
 
 void toolsPrintAlbums(vector<peeAlbum*>* pAlbum)
 {

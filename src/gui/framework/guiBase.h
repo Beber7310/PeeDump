@@ -36,6 +36,7 @@ public:
 
 	void RenderRoundRect(int x, int y, int w, int h, int rw, int rh);
 	void RenderText(int x, int y, const char *s, int pointsize);
+	void RenderTextMid(int x, int y, const char *s, int pointsize);
 	void Polygon(float* x, float* y, int n);
 	void SetName(const char * pName);
 	void Line(int x1, int y1, int x2, int y2);

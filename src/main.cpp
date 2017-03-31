@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
 		{
 			appContext.Podcasts->at(ii)->updatePodcast();
 		}
-		sleep(60*60);
+		sleep(15*60);
 
 	}
 }

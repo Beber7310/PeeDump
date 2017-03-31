@@ -50,7 +50,8 @@ peePodcast::peePodcast(char* htmlSource,int age,int time){
 
 
 	// to be removed as used to test update
-	//_traks->erase(_traks->cbegin() + 0);
+	if(_traks->size()>0)
+		_traks->erase(_traks->cbegin() + 0);
 	//updatePodcast();
 
 
@@ -63,35 +64,7 @@ peePodcast::~peePodcast() {
 
 void peePodcast::updatePodcast()
 {
-	/*
-	std::vector<peePodcastTrack*>* tmpTraks;
-	unsigned int indexNew,indexOld;
-
-	tmpTraks=toolsGetUserPodcastTracks(this,_htmlSource);
-
-	for(indexNew=0;indexNew<tmpTraks->size();indexNew++)
-	{
-		bool newPodcastTrack=true;
-		for(indexOld=0;indexOld<_traks->size();indexOld++)
-		{
-			if(strcmp( tmpTraks->at(indexNew)->_title, _traks->at(indexOld)->_title  )==0)
-			{
-				newPodcastTrack=false;
-				break;
-			}
-		}
-		if(newPodcastTrack)
-		{
-			printf("Found new podcast tracks: %s\n",tmpTraks->at(indexNew)->_title);
-			_traks->push_back(tmpTraks->at(indexNew));
-			tmpTraks->erase(tmpTraks->cbegin() + indexNew);
-			//indexNew--;
-		}
-	}
-	std::sort(_traks->begin(), _traks->end(), compare_podcast);
-*/
-
-	toolsUpdateUserPodcastTracks(_traks,this,_htmlSource);
+ 	toolsUpdateUserPodcastTracks(_traks,this,_htmlSource);
 	std::sort(_traks->begin(), _traks->end(), compare_podcast);
 }
 

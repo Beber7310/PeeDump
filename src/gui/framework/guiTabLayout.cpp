@@ -24,9 +24,19 @@ guiTabLayout::~guiTabLayout() {
 
 void guiTabLayout::Render(void)
 {
-	ComputeChildAbsPos();
+
 
 	guiBase* pG=_ChildFirst;
+
+	if(abs(_xTarget-_xOrigin)<100)
+		_xOrigin=_xTarget;
+	else if(_xTarget>_xOrigin)
+		_xOrigin+=80;
+	else
+		_xOrigin-=80;
+
+	ComputeChildAbsPos();
+
 	while(pG)
 	{
 		bool skip=false;
@@ -104,12 +114,7 @@ void guiTabLayout::Mouse(stMouse* pMouse)
 		}
 		else
 		{
-			if(abs(_xTarget-_xOrigin)<100)
-				_xOrigin=_xTarget;
-			else if(_xTarget>_xOrigin)
-				_xOrigin+=80;
-			else
-				_xOrigin-=80;
+
 		}
 
 

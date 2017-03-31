@@ -19,6 +19,7 @@
 #include "guiThermo.h"
 #include "guiHeater.h"
 #include "guiCourant.h"
+#include "guiVmc.h"
 
 
 

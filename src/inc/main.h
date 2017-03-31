@@ -28,6 +28,7 @@ struct stAppContext {
 
 struct stMouse {
 	int32_t	x,y;
+	int  update;
 	bool t;
 	bool firstTouch;
 	bool LastTouch;
