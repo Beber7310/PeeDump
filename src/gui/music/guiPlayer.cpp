@@ -16,10 +16,10 @@
 #define ARROW_Y_1	30
 #define ARROW_Y_2	60
 
-#define OFFSET_NEXT_X	400
+#define OFFSET_NEXT_X	300
 #define OFFSET_NEXT_Y	12
 
-#define OFFSET_PREV_X	200
+#define OFFSET_PREV_X	100
 #define OFFSET_PREV_Y	12
 
 
@@ -28,8 +28,8 @@
 #define PAUSE_TOP		0
 #define PAUSE_BOTTOM	60
 
-#define OFFSET_PAUSE_X	310
-#define OFFSET_PAUSE2_X	(290-PAUSE_RIGHT)
+#define OFFSET_PAUSE_X	210
+#define OFFSET_PAUSE2_X	(190-PAUSE_RIGHT)
 #define OFFSET_PAUSE_Y	12
 
 
@@ -71,6 +71,9 @@ void guiPlayer::Render(void)
 	Polygon(PauseX,PauseY,4);
 	Polygon(PauseX2,PauseY2,4);
 
+
+	Circle(_x+525,_y+OFFSET_PAUSE_Y+30,60);
+
 	if(colorNext<254)
 		colorNext+=2;
 
@@ -80,7 +83,7 @@ void guiPlayer::Render(void)
 	if(colorPause<254)
 		colorPause+=2;
 
-	RenderText(_x+20,_y+95,deezerGetSongName(),15);
+	RenderTextMid(_x+_cx/2,_y+90,deezerGetSongName(),17);
 }
 
 void guiPlayer::Mouse(stMouse* pMouse)

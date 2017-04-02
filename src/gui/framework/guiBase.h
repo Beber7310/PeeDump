@@ -40,6 +40,7 @@ public:
 	void Polygon(float* x, float* y, int n);
 	void SetName(const char * pName);
 	void Line(int x1, int y1, int x2, int y2);
+	void Circle(int x1, int y1, int r);
 	//std::list<GuiBase*> _child;
 };
 

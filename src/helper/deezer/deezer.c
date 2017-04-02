@@ -85,6 +85,8 @@ static void app_playback_next();
 static void app_playback_previous();
 static void app_playback_toogle_repeat();
 static void app_playback_toogle_random();
+static void app_playback_random_on();
+static void app_playback_random_off();
 static void app_shutdown();
 
 static void dz_connect_on_deactivate(void* delegate,
@@ -440,7 +442,7 @@ static void app_playback_toogle_repeat() {
 	return;
 }
 
-static void app_playback_toogle_random() {
+static void app_playback_random_on() {
 
 	app_ctxt->is_shuffle_mode = (app_ctxt->is_shuffle_mode?false:true);
 
@@ -449,7 +451,21 @@ static void app_playback_toogle_random() {
 	dz_player_enable_shuffle_mode(app_ctxt->dzplayer,
 			NULL,
 			NULL,
-			app_ctxt->is_shuffle_mode);
+			1);
+	app_ctxt->is_shuffle_mode=true;
+}
+
+static void app_playback_random_off() {
+
+	app_ctxt->is_shuffle_mode = (app_ctxt->is_shuffle_mode?false:true);
+
+	log("SHUFFLE mode => %s\n", app_ctxt->is_shuffle_mode?"ON":"OFF");
+
+	dz_player_enable_shuffle_mode(app_ctxt->dzplayer,
+			NULL,
+			NULL,
+			0);
+	app_ctxt->is_shuffle_mode=false;
 }
 
 static void app_playback_next() {
@@ -685,10 +701,16 @@ static void app_commands_get_next() {
 			app_playback_toogle_repeat();
 			break;
 
-		case DEEZER_CMD_RANDOM_OFF:
-			app_playback_toogle_random();
+
+
+		case DEEZER_CMD_RANDOM_ON:
+			app_playback_random_on();
 			break;
 
+		case DEEZER_CMD_RANDOM_OFF:
+			app_playback_random_off();
+
+			break;
 		case DEEZER_CMD_EXIT:
 			is_shutting_down = true;
 			app_shutdown();
