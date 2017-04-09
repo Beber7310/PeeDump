@@ -21,9 +21,11 @@ public:
 	virtual void Mouse(stMouse* pMouse);
 	bool MouseIsInWindows(stMouse* pMouse);
 	void AddChild(guiBase* pGui);
+	void SetScreenSize(int cx,int cy);
 //protected:
 	int _x,_y,_cx,_cy,_xTarget,_yTarget;
-	int screenSizeX,screenSizeY;
+	static int screenSizeX;
+	static int screenSizeY;
 	int mouseOriginX,mouseOriginY;
 	int nbrChild;
 	bool mouseFirstTouch;

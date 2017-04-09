@@ -148,6 +148,7 @@ int mainDeezer(void* voidtoken) {
 	app_ctxt = (app_context_handle)calloc(1,sizeof(app_context));
 
 	//This is hox to set music! --->
+#ifdef BOOMBOOM_SALON
 	app_change_content("dzmedia:///album/607845");
 
 	app_ctxt->dzconnect = dz_connect_new(&config);
@@ -224,6 +225,10 @@ int mainDeezer(void* voidtoken) {
 		log("dz_connect_offline_mode error\n");
 		return -1;
 	}
+#else
+	app_ctxt->activation_count++;
+#endif
+
 
 	while ((app_ctxt->activation_count > 0)) {
 		// Get the next user action only if not shutting down.
@@ -691,10 +696,12 @@ static void app_commands_get_next() {
 
 		case DEEZER_CMD_NEXT:
 			app_playback_next();
+			system("mpc next");
 			break;
 
 		case DEEZER_CMD_PREV:
 			app_playback_previous();
+			system("mpc prev");
 			break;
 
 		case DEEZER_CMD_REPEAT_MODE_OFF:
@@ -745,6 +752,16 @@ static void app_commands_get_next() {
 			system(strBuf);//launch mp3 player
 			szCurrentSong=name;
 			break;
+		case DEEZER_CMD_LOAD_DIR_MP3:
+			app_playback_stop();
+			mpcPause=0;
+			sprintf(strBuf,"mpc clear;mpc add mp3/\"%s\";mpc play",arg);
+			printf("%s\n",strBuf);
+			system(strBuf);//launch mp3 player
+			szCurrentSong=name;
+			break;
+
+
 	}
 }
 

@@ -9,7 +9,7 @@
 
 guiVerticalSplit::guiVerticalSplit() {
 	// TODO Auto-generated constructor stub
-	_verticalSplitSize=900;
+	_verticalSplitSize=screenSizeY-125;
 }
 
 guiVerticalSplit::~guiVerticalSplit() {

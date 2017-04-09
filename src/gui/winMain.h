@@ -20,6 +20,7 @@
 #include "guiHeater.h"
 #include "guiCourant.h"
 #include "guiVmc.h"
+#include "guiMP3.h"
 
 
 

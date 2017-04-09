@@ -6,12 +6,17 @@
  */
 
 // first OpenVG program
+
+#include "configuration.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <linux/input.h>
+#include <string.h>
+#include <dirent.h>
 
 #include "EGL/egl.h"
 
@@ -36,14 +41,18 @@
 
 guiBase* guiBuild()
 {
+#ifdef BOOMBOOM_SALON
 	guiList* 			albumsWindows 		= new guiList();
 	guiList* 			playlistWindows 	= new guiList();
-	guiList* 			podcastWindows  	= new guiList();
 	guiList* 			homecontrolWindows  = new guiList();
+#endif
+	guiList*			mp3Windows		  	= new guiList();
+	guiList* 			podcastWindows  	= new guiList();
 	guiPlayer* 			playerWindows   	= new guiPlayer();
 	guiTabLayout*		tabLayout			= new guiTabLayout();
 	guiVerticalSplit*	verticalSplit		= new guiVerticalSplit();
 
+#ifdef BOOMBOOM_SALON
 	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
 	{
 		albumsWindows->AddChild(new guiAlbum(*it));
@@ -53,12 +62,24 @@ guiBase* guiBuild()
 	{
 		playlistWindows->AddChild(new guiPlaylist(*it));
 	}
-
+#endif
 	for (vector<peePodcast*>::iterator it = appContext.Podcasts->begin(); it != appContext.Podcasts->end(); it++)
 	{
 		podcastWindows->AddChild(new guiPodcast(*it));
 	}
 
+	// ADD MP3 Directory
+	DIR* dirp = opendir("audio/mp3/");
+	dirent * dp;
+	while ((dp = readdir(dirp)) != NULL)
+	{
+		if(dp->d_name[0]!='.')
+			mp3Windows->AddChild(new guiMP3(dp->d_name) );
+	}
+	(void)closedir(dirp);
+
+
+#ifdef BOOMBOOM_SALON
 	homecontrolWindows->AddChild(new guiCourant());
 	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_VMC));
 	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_DISCO));
@@ -71,24 +92,36 @@ guiBase* guiBuild()
 	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_PARENT));
 	homecontrolWindows->AddChild(new guiHeater(HC_HEATER_HOMECINEMA));
 	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_GARAGE));
+#endif
 
-
-
+#ifdef BOOMBOOM_SALON
 	playlistWindows->SetName("Playlists");
 	albumsWindows->SetName("Albums");
+	homecontrolWindows->SetName("Home Control");
+#endif
 	podcastWindows->SetName("Podcasts");
 	playerWindows->SetName("Player");
-	homecontrolWindows->SetName("Home Control");
+	mp3Windows->SetName("MP3");
 
-	//tabLayout->AddChild(playerWindows);
+
+
+#ifdef BOOMBOOM_SALON
 	tabLayout->AddChild(playlistWindows);
 	tabLayout->AddChild(albumsWindows);
-	tabLayout->AddChild(podcastWindows);
 	tabLayout->AddChild(homecontrolWindows);
+#endif
+	tabLayout->AddChild(podcastWindows);
+	tabLayout->AddChild(mp3Windows);
 
 	verticalSplit->AddChild(tabLayout);
 	verticalSplit->AddChild(playerWindows);
-
+#ifdef SCREEN_7P
+	verticalSplit->_verticalSplitSize=900;
+#elif defined(SCREEN_5P)
+	verticalSplit->_verticalSplitSize=675;
+#else
+#error
+#endif
 	return verticalSplit;
 }
 

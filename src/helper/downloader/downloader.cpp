@@ -4,6 +4,8 @@
  *  Created on: 17 mars 2017
  *      Author: Bertrand
  */
+#include "configuration.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>

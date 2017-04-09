@@ -26,7 +26,6 @@ stAppContext appContext;
 
 
 int main(int argc, char *argv[]) {
-
 	homeControl* pHome=new homeControl();
 
 

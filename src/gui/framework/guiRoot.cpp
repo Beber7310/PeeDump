@@ -5,6 +5,8 @@
  *      Author: Bertrand
  */
 // first OpenVG program
+#include "configuration.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,6 +33,8 @@
 
 static pthread_mutex_t vSynclock;
 static pthread_mutex_t mousseLock;
+static sem_t semaphorDraw;
+
 static stMouse gMouse;
 
 #define EVENT_DEVICE    "/dev/input/event0"
@@ -50,6 +54,8 @@ unsigned long lasttime = 0;
 void* guiThread(void * p) {
 
 	stMouse localMouse;
+	int needDraw=25*5;
+	bool	toggle=false;
 	struct timeval tv;
 	unsigned long lasttime;
 	unsigned long microseconds;
@@ -60,24 +66,19 @@ void* guiThread(void * p) {
 
 	//guiBase* mainWindows=guiBuild();
 	currentWindows->Resize(0,0,screenWidth,screenHeight);
-
+	currentWindows->SetScreenSize(screenWidth,screenHeight);
 
 	while(1)
 	{
-
-		gettimeofday(&tv, NULL);
-		lasttime = (tv.tv_sec*1000000)+tv.tv_usec;
-
-		ovgStart(screenWidth, screenHeight);				   // Start the picture
-
-		ovgBackground(0, 0, 0);				   // Black background
 		//ovgFill(44, 77, 232, 1);				   // Big blue marble
 
 		if(currentWindows)
 		{
+			sem_wait(&semaphorDraw);
 			pthread_mutex_lock(&mousseLock);
 			if(((stMouse*) p)->update!=lastUpdate)
 			{
+				needDraw=25*2;
 				localMouse.x=((stMouse*) p)->x;
 				localMouse.y=((stMouse*) p)->y;
 				localMouse.t=((stMouse*) p)->t;
@@ -87,17 +88,26 @@ void* guiThread(void * p) {
 			}
 			pthread_mutex_unlock(&mousseLock);
 
-			currentWindows->Render();
+			if(needDraw>0)
+			{
+				needDraw--;
+				ovgStart(screenWidth, screenHeight);				   // Start the picture
+				ovgBackground(0, 0, 0);				   // Black background
+				currentWindows->Render();
+
+				toggle=!toggle;
+				ovgFill(toggle?255:0,255,255,1);
+
+				ovgCircle(localMouse.x,screenHeight-localMouse.y,10.0f);
+				ovgEnd(); //Moved in callback
+			}
 		}
 
 
-		//pthread_mutex_lock(&vSynclock);
-		gettimeofday(&tv, NULL);
-		microseconds = (tv.tv_sec*1000000)+tv.tv_usec;
 
-		//printf("sync  %lu \n", microseconds-lasttime);
 
-		ovgEnd(); //Moved in callback						   // End the picture
+
+							   // End the picture
 	}
 }
 
@@ -166,11 +176,22 @@ void* guiMouseThread(void * p)
 		{
 			update=false;
 			pthread_mutex_lock(&mousseLock);
+
+#ifdef	SCREEN_7P
 			pMouse->x=600-y; // swap on purpose !!!
 			pMouse->y=x; // swap on purpose !!!
+#elif defined(SCREEN_5P)
+			pMouse->x=480.0f*(y-250.0f)/3600.0f; // swap on purpose !!!
+			pMouse->y=800-(800.0f*(x-154.0f)/3800.0f); // swap on purpose !!!
+#else
+	#error
+#endif
+
 			pMouse->t=t;
 			pMouse->update++;
+			//printf("%3.3i %3.3i %1.1i\n",pMouse->x, pMouse->y,pMouse->t);
 			pthread_mutex_unlock(&mousseLock);
+			sem_post(&semaphorDraw);
 		}
 	}
 
@@ -199,6 +220,8 @@ int guiLaunch(void)
 		printf("\n vSynclock  mutex init failed\n");
 		return 1;
 	}
+
+	sem_init(&semaphorDraw,0,1);
 
 	ret =  pthread_create(&my_guiThread, NULL, &guiThread, &gMouse);
 	ret =  pthread_create(&my_mouseThread, NULL, &guiMouseThread, &gMouse);

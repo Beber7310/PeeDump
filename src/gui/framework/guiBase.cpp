@@ -10,6 +10,9 @@
 #include "Shapes.h"
 
 
+int guiBase::screenSizeX;
+int guiBase::screenSizeY;
+
 guiBase::guiBase() {
 	// TODO Auto-generated constructor stub
 	_x=0;
@@ -22,14 +25,20 @@ guiBase::guiBase() {
 	_BrotherPrev=NULL;
 	_ChildFirst=NULL;
 
-	screenSizeX=600;
-	screenSizeY=1024;
+
 	mouseOriginX=0;
 	mouseOriginY=0;
 	mouseFirstTouch=true;
 
 	_windowName=NULL;
 	nbrChild=0;
+}
+
+
+void guiBase::SetScreenSize(int cx,int cy)
+{
+	screenSizeX=cx;
+	screenSizeY=cy;
 }
 
 
@@ -48,6 +57,7 @@ guiBase::~guiBase() {
 	nbrChild++;
 
 }
+
 void guiBase::SetName(const char * pName)
 {
 	_windowName=(char*)malloc(strlen(pName)+1);
