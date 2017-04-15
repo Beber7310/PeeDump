@@ -14,6 +14,8 @@
 
 #include "peeAlbum.h"
 #include "peeBase.h"
+#include "tools.h"
+
 
 using namespace std;
 
@@ -23,6 +25,8 @@ peeAlbum::peeAlbum() {
 	_artisteName=NULL;
 	_albumName=NULL;
 	_coverHtmplPath=NULL;
+	_tracks=NULL;
+	_currentTrack=0;
 }
 
 peeAlbum::~peeAlbum() {
@@ -40,11 +44,24 @@ peeAlbum::peeAlbum(const char* id,const char* artisteName,const char* albumName,
 	strcpy(_albumName,albumName);
 	strcpy(_artisteName,artisteName);
 	strcpy(_coverHtmplPath,coverHtmplPath);
+	_currentTrack=0;
+	_tracks=NULL;
+}
 
+void peeAlbum::fetchTracks() {
+	if(_tracks==NULL)
+		_tracks=toolsGetUserAlbumTracks(this);
 }
 
 void peeAlbum::print() {
 
 	cout << _artisteName << " " << _albumName << "(" << _id << ")" <<  endl;
-
+	if(_tracks!=NULL)
+	{
+		for (vector<peeTrack*>::iterator it = _tracks ->begin(); it != _tracks->end(); it++)
+		{
+			(*it)->print();
+		}
+	}
 }
+

@@ -11,6 +11,7 @@
 #include "peeAlbum.h"
 #include "peePlaylist.h"
 #include "peePodcast.h"
+#include "peeTrack.h"
 #include "main.h"
 
 
@@ -22,8 +23,10 @@ uint32_t  toolsGetUser();
 void toolsGetToken(char* pToken);
 
 std::vector<peeAlbum*>* 		toolsGetUserAlbums(uint32_t userId);
+std::vector<peeTrack*>* 		toolsGetUserAlbumTracks(peeAlbum* pAlbum);
+
 std::vector<peePlaylist*>* 		toolsGetUserPlaylists(uint32_t userId);
-std::vector<peePodcast*>* 		toolsGetUserPodcasts(uint32_t userId); 	// Deezerpodcast
+
 std::vector<peePodcast*>*  		toolsGetPodcast(void);				 	// podcast from config file
 void 							toolsUpdateUserPodcastTracks(std::vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource);
 

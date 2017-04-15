@@ -13,7 +13,7 @@
 
 
 #ifdef BOOMBOOM_SALON
-	#define SCREEN_5P
+	#define SCREEN_7P
 	#define DOWNLOAD_ROOT_DIR "/mnt/usbdrive/"
 #elif defined(BOOMBOOM_DAPHNEE)
 	#define SCREEN_5P

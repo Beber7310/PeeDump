@@ -37,8 +37,8 @@ extern "C" {
 #define DEEZER_CMD_EXIT				60
 
 int deezerLaunch(char* token);
-int deezerPostCommand(uint32_t cmd,const char* arg,const char* name );
-char* deezerGetSongName();
+int deezerPostCommand(uint32_t cmd,const void* arg,const char* name );
+const char* deezerGetSongName();
 #ifdef __cplusplus
 	}
 #endif

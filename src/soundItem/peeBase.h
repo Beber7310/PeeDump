@@ -16,7 +16,7 @@ public:
 	virtual ~peeBase();
 
 	char* _id;
-
+	char* _title;
 
 	void print(void);
 };

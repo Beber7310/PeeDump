@@ -23,6 +23,7 @@
 #include "http_fetcher.h"
 #include "peeAlbum.h"
 #include "peePlaylist.h"
+#include "peeTrack.h"
 #include "deezer.h"
 #include "tools.h"
 #include "main.h"
@@ -184,7 +185,7 @@ char * toolsGetHtml(char *url)
  *
  */
 vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
-		{
+{
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
@@ -218,7 +219,43 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 	}
 
 	return retAlbum;
-		}
+}
+
+vector<peeTrack*>* toolsGetUserAlbumTracks(peeAlbum* pAlbum)
+{
+	XMLDocument xmlDoc;
+	char url [1024];
+	char *fileBuf;
+	uint32_t albumId;
+
+
+
+	sprintf(url,"http://api.deezer.com/album/%s&output=xml",pAlbum->_id);
+	fileBuf = toolsGetHtml(url);
+
+	xmlDoc.Parse( fileBuf, strlen(fileBuf));
+	free(fileBuf);
+	XMLNode* tracksNode = xmlDoc.FirstChildElement( )->FirstChildElement( "tracks" )->FirstChildElement( "data")->FirstChildElement( "track") ;
+
+	vector<peeTrack*>* retAlbum =new std::vector<peeTrack*>;
+
+	while(tracksNode!=NULL)
+	{
+		const char* id;
+		const char* title;
+		int length;
+
+		id=tracksNode->FirstChildElement("id")->FirstChild()->Value();
+		title=tracksNode->FirstChildElement("title")->FirstChild()->Value();
+		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
+
+		retAlbum->push_back(new peeTrack(id,title,length,pAlbum));
+
+		tracksNode=tracksNode->NextSibling();
+	}
+
+	return retAlbum;
+}
 
 std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 {

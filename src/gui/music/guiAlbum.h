@@ -21,9 +21,9 @@ public:
 	virtual void Render(void);
 	virtual void Mouse(stMouse* pMouse);
 
-	peeAlbum* _pAlbum;
-	bool	_selected;
-	int _color;
+	peeAlbum* 	_pAlbum;
+	bool		_selected;
+	int 		_color;
 };
 
 #endif /* GUI_GUIALBUM_H_ */

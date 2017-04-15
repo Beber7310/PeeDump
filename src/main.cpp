@@ -30,7 +30,10 @@ int main(int argc, char *argv[]) {
 
 
 	pHome->refreshData();
+	system("pactl unload-module module-combine-sink");
 	system("pulseaudio -D");
+	system("pactl load-module module-combine-sink   sink_name=record-n-play slaves=alsa_output.platform-soc_sound.analog-stereo");
+
 	toolsDownloadInit();
 	system("mpc update");
 
@@ -59,7 +62,7 @@ int main(int argc, char *argv[]) {
 
 	while(1)
 	{
-		int ii;
+		unsigned int ii;
 
 		for(ii=0;ii<appContext.Podcasts->size();ii++)
 		{

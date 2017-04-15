@@ -37,8 +37,6 @@
 #include "homeControl.h"
 
 
-
-
 guiBase* guiBuild()
 {
 #ifdef BOOMBOOM_SALON
@@ -70,14 +68,20 @@ guiBase* guiBuild()
 
 	// ADD MP3 Directory
 	DIR* dirp = opendir("audio/mp3/");
-	dirent * dp;
-	while ((dp = readdir(dirp)) != NULL)
+	if(dirp==NULL)
 	{
-		if(dp->d_name[0]!='.')
-			mp3Windows->AddChild(new guiMP3(dp->d_name) );
+		printf("audio/mp3/ not found...");
 	}
-	(void)closedir(dirp);
-
+	else
+	{
+		dirent * dp;
+		while ((dp = readdir(dirp)) != NULL)
+		{
+			if(dp->d_name[0]!='.')
+				mp3Windows->AddChild(new guiMP3(dp->d_name) );
+		}
+		(void)closedir(dirp);
+	}
 
 #ifdef BOOMBOOM_SALON
 	homecontrolWindows->AddChild(new guiCourant());
@@ -108,10 +112,13 @@ guiBase* guiBuild()
 #ifdef BOOMBOOM_SALON
 	tabLayout->AddChild(playlistWindows);
 	tabLayout->AddChild(albumsWindows);
-	tabLayout->AddChild(homecontrolWindows);
 #endif
 	tabLayout->AddChild(podcastWindows);
 	tabLayout->AddChild(mp3Windows);
+#ifdef BOOMBOOM_SALON
+	tabLayout->AddChild(homecontrolWindows);
+#endif
+
 
 	verticalSplit->AddChild(tabLayout);
 	verticalSplit->AddChild(playerWindows);

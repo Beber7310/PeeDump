@@ -59,10 +59,13 @@ void guiAlbum::Mouse(stMouse* pMouse)
 
 			_color=100;
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,_pAlbum->_id,_pAlbum->_albumName);
+			_pAlbum->fetchTracks();
+			_pAlbum->print();
+
+			//deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,_pAlbum->_id,_pAlbum->_albumName);
+			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,_pAlbum,NULL);
+
 		}
-
-
 	}
 
 }

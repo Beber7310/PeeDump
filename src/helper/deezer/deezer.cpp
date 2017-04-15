@@ -12,6 +12,8 @@
 #include <semaphore.h>
 #include <stdint.h>
 #include "deezer.h"
+#include "configuration.h"
+#include "peeAlbum.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -27,6 +29,7 @@ static __inline int sleep(int s) {
 #include <deezer-player.h>
 
 static sem_t semaphorDeezer;
+static sem_t semaphorRecord;
 
 static bool mpcPause=false;
 
@@ -36,13 +39,13 @@ static bool mpcPause=false;
 struct deezerCmd_st
 {
 	uint32_t Cmd;
-	const char* Arg;
+	const void* Arg;
 	const char* NameToDisplay;
 }deezerCmd[16];
 
 static int 		deezerCmdIndexWr=0;
 static int 		deezerCmdIndexRd=0;
-static char*	szCurrentSong;
+static const char*	szCurrentSong;
 
 static char	szNone[]="";
 static char	szLoading[]="Loading...";
@@ -56,6 +59,9 @@ typedef struct {
 	dz_player_handle      dzplayer;
 	dz_queuelist_repeat_mode_t repeat_mode;
 	bool                  is_shuffle_mode;
+	bool                  is_playing_album;
+	bool                  is_playing_playlist;
+	peeAlbum*			  pAlbum;
 } app_context;
 
 typedef app_context *app_context_handle;
@@ -69,16 +75,14 @@ static app_context_handle app_ctxt = NULL;
 #define YOUR_APPLICATION_ID      "180202"     // SET YOUR APPLICATION ID
 #define YOUR_APPLICATION_NAME    "NanoPlayer" // SET YOUR APPLICATION NAME
 #define YOUR_APPLICATION_VERSION "00001"      // SET YOUR APPLICATION VERSION
-#ifdef _WIN32
-#define USER_CACHE_PATH          "c:\\dzr\\dzrcache_NDK_SAMPLE" // SET THE USER CACHE PATH, This pasth must already exist
-#else
 #define USER_CACHE_PATH          "/var/tmp/dzrcache_NDK_SAMPLE" // SET THE USER CACHE PATH, This pasth must already exist
-#endif
 
-static void app_commands_display();
+
+
 static void app_commands_get_next();
 static void app_change_content(char * content);
 static void app_load_content();
+static void app_load_album(peeAlbum* pAlbum);
 static void app_playback_start_or_stop();
 static void app_playback_pause_or_resume();
 static void app_playback_next();
@@ -107,7 +111,7 @@ static void app_player_onevent_cb(dz_player_handle handle,
 		dz_player_event_handle event,
 		void* supervisor);
 
-int mainDeezer(void* voidtoken) {
+void* mainDeezer(void* voidtoken) {
 	char* token=(char*)voidtoken;
 
 	szCurrentSong=szNone;
@@ -155,7 +159,7 @@ int mainDeezer(void* voidtoken) {
 
 	if (app_ctxt->dzconnect == NULL) {
 		log("dzconnect null\n");
-		return -1;
+		return NULL;
 	}
 
 	if (print_device_id) {
@@ -165,13 +169,13 @@ int mainDeezer(void* voidtoken) {
 	dzerr = dz_connect_debug_log_disable(app_ctxt->dzconnect);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_connect_debug_log_disable error\n");
-		return -1;
+		return NULL;
 	}
 
 	dzerr = dz_connect_activate(app_ctxt->dzconnect, app_ctxt);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_connect_activate error\n");
-		return -1;
+		return NULL;
 	}
 	app_ctxt->activation_count++;
 
@@ -182,32 +186,32 @@ int mainDeezer(void* voidtoken) {
 	app_ctxt->dzplayer = dz_player_new(app_ctxt->dzconnect);
 	if (app_ctxt->dzplayer == NULL) {
 		log("dzplayer null\n");
-		return -1;
+		return NULL;
 	}
 
 	dzerr = dz_player_activate(app_ctxt->dzplayer, app_ctxt);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_player_activate error\n");
-		return -1;
+		return NULL;
 	}
 	app_ctxt->activation_count++;
 
 	dzerr = dz_player_set_event_cb(app_ctxt->dzplayer, app_player_onevent_cb);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_player_set_event_cb error\n");
-		return -1;
+		return NULL;
 	}
 
 	dzerr = dz_player_set_output_volume(app_ctxt->dzplayer, NULL, NULL, 20);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_player_set_output_volume error\n");
-		return -1;
+		return NULL;
 	}
 
 	dzerr = dz_player_set_crossfading_duration(app_ctxt->dzplayer, NULL, NULL, 3000);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_player_set_crossfading_duration error\n");
-		return -1;
+		return NULL;
 	}
 
 	app_ctxt->repeat_mode = DZ_QUEUELIST_REPEAT_MODE_OFF;
@@ -216,14 +220,14 @@ int mainDeezer(void* voidtoken) {
 	dzerr = dz_connect_set_access_token(app_ctxt->dzconnect,NULL, NULL, token);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_connect_set_access_token error\n");
-		return -1;
+		return NULL;
 	}
 
 	/* Calling dz_connect_offline_mode(FALSE) is mandatory to force the login */
 	dzerr = dz_connect_offline_mode(app_ctxt->dzconnect, NULL, NULL, false);
 	if (dzerr != DZ_ERROR_NO_ERROR) {
 		log("dz_connect_offline_mode error\n");
-		return -1;
+		return NULL;
 	}
 #else
 	app_ctxt->activation_count++;
@@ -351,20 +355,61 @@ static void app_play_afterload(
 		dz_error_t status,
 		dz_object_handle result)
 {
+	log("PLAY ALBUM=> %s\n", app_ctxt->sz_content_url);
 	dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
-	dz_player_play(app_ctxt->dzplayer, NULL, NULL,
-			DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
-			DZ_INDEX_IN_QUEUELIST_CURRENT);
+	dz_player_play(app_ctxt->dzplayer, NULL, NULL,DZ_PLAYER_PLAY_CMD_START_TRACKLIST,DZ_INDEX_IN_QUEUELIST_CURRENT);
+}
+
+static void app_play_afterload_album(
+		void* delegate,
+		void* operation_userdata,
+		dz_error_t status,
+		dz_object_handle result)
+{
+	log("PLAY ALBUM TRACK\n");
+	//dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
+	dz_player_play(app_ctxt->dzplayer, NULL, NULL,DZ_PLAYER_PLAY_CMD_START_TRACKLIST,DZ_INDEX_IN_QUEUELIST_CURRENT);
 }
 
 static void app_load_content() {
-
 	log("LOAD => %s\n", app_ctxt->sz_content_url);
-	dz_player_load(app_ctxt->dzplayer,
-			&app_play_afterload,
-			NULL,
-			app_ctxt->sz_content_url);
+
+	system("killall -q parec lame");
+
+	app_ctxt->is_playing_album=false;
+	app_ctxt->is_playing_playlist=false;
+
+	dz_player_load(app_ctxt->dzplayer,&app_play_afterload,NULL,app_ctxt->sz_content_url);
+
+
 }
+
+static void app_load_album(peeAlbum* pAlbum) {
+	char szTemp[512];
+
+	system("killall -q parec lame");
+
+	app_ctxt->is_playing_album=true;
+	app_ctxt->is_playing_playlist=false;
+	app_ctxt->pAlbum=pAlbum;
+
+	sprintf(szTemp,"dzmedia:///track/%s",pAlbum->_tracks->at(pAlbum->_currentTrack)->_id);
+	log("LOAD ALBUM TRACKS=> %s\n", szTemp);
+	dz_player_load(app_ctxt->dzplayer,&app_play_afterload_album,NULL,szTemp);
+}
+
+static void app_load_album_next() {
+	char szTemp[512];
+
+	app_ctxt->pAlbum->_currentTrack++;
+	if(app_ctxt->pAlbum->_currentTrack<app_ctxt->pAlbum->_tracks->size())
+	{
+		sprintf(szTemp,"dzmedia:///track/%s",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_id);
+		log("LOAD ALBUM TRACKS=> %s\n", szTemp);
+		dz_player_load(app_ctxt->dzplayer,&app_play_afterload_album,NULL,szTemp);
+	}
+}
+
 
 static void app_playback_start_or_stop() {
 
@@ -379,6 +424,7 @@ static void app_playback_start_or_stop() {
 		dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
 	}
 }
+
 static void app_playback_start() {
 
 	if (!app_ctxt->is_playing) {
@@ -433,7 +479,7 @@ static void app_playback_resume() {
 static void app_playback_toogle_repeat() {
 
 
-	app_ctxt->repeat_mode++;
+	//TODO removed app_ctxt->repeat_mode++;
 	if (app_ctxt->repeat_mode > DZ_QUEUELIST_REPEAT_MODE_ALL) {
 		app_ctxt->repeat_mode = DZ_QUEUELIST_REPEAT_MODE_OFF;
 	}
@@ -493,10 +539,10 @@ static void app_playback_previous() {
 
 }
 
-
 void app_player_onevent_cb( dz_player_handle       handle,
 		dz_player_event_handle event,
 		void *                 supervisor) {
+
 
 	dz_streaming_mode_t   streaming_mode;
 	dz_index_in_queuelist idx;
@@ -585,16 +631,54 @@ void app_player_onevent_cb( dz_player_handle       handle,
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START:
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START for idx: %d\n", context, idx);
 			app_ctxt->is_playing = true;
+			if(app_ctxt->is_playing_album)
+			{
+				sem_post(&semaphorRecord);
+				log("START: %s %s %s\n",app_ctxt->pAlbum->_artisteName,app_ctxt->pAlbum->_albumName,app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+			}
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_END:
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_END for idx: %d\n", context, idx);
 			app_ctxt->is_playing = false;
 			log("- nb_track_played : %d\n",app_ctxt->nb_track_played);
+
 			// Detect if we come from from playing an ad, if yes restart automatically the playback.
 			if (idx == DZ_INDEX_IN_QUEUELIST_INVALID) {
 				app_playback_start_or_stop();
 			}
+
+			if(app_ctxt->is_playing_album)
+			{
+				log("END: %s %s %s\n",app_ctxt->pAlbum->_artisteName,app_ctxt->pAlbum->_albumName,app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+				system("killall -q parec lame");
+				char szcmd[512];
+
+				sprintf(szcmd,"mkdir -p \"%s/mp3/%s/%s\"",
+						DOWNLOAD_ROOT_DIR,
+						app_ctxt->pAlbum->_artisteName,
+						app_ctxt->pAlbum->_albumName);
+				system(szcmd);
+
+				sprintf(szcmd," %s/mp3/%s/%s/%2.2i-%s.mp3",
+						DOWNLOAD_ROOT_DIR,
+						app_ctxt->pAlbum->_artisteName,
+						app_ctxt->pAlbum->_albumName,
+						app_ctxt->pAlbum->_currentTrack+1,
+						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+				if(access( szcmd, F_OK ) != -1 )
+				{
+					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%2.2i-%s.mp3\"",
+							DOWNLOAD_ROOT_DIR,
+							app_ctxt->pAlbum->_artisteName,
+							app_ctxt->pAlbum->_albumName,
+							app_ctxt->pAlbum->_currentTrack+1,
+							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+					system(szcmd);
+				}
+				app_load_album_next();
+			}
+
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_PAUSED:
@@ -629,6 +713,35 @@ void app_player_onevent_cb( dz_player_handle       handle,
 	}
 }
 
+void* mainRecord(void* voidtoken) {
+
+	char szCmd[512];
+	while(1)
+	{
+		/*
+		  --tt <title>    audio/song title (max 30 chars for version 1 tag)
+		  --ta <artist>   audio/song artist (max 30 chars for version 1 tag)
+		  --tl <album>    audio/song album (max 30 chars for version 1 tag)
+		  --ty <year>     audio/song year of issue (1 to 9999)
+		  --tc <comment>  user-defined text (max 30 chars for v1 tag, 28 for v1.1)
+		  --tn <track[/total]>   audio/song track number and (optionally) the total
+		 */
+
+		sem_wait(&semaphorRecord);
+		sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
+				"--tt \"%s\" "
+				"--ta \"%s\" "
+				"--tl \"%s\" ",
+				app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title,
+				app_ctxt->pAlbum->_artisteName,
+				app_ctxt->pAlbum->_albumName);
+		log("Start record\n");
+		system(szCmd);
+		log("End record\n");
+	}
+}
+
+
 static void dz_connect_on_deactivate(void*            delegate,
 		void*            operation_userdata,
 		dz_error_t       status,
@@ -649,13 +762,12 @@ static void dz_player_on_deactivate(void*            delegate,
 			status);
 }
 
-
 static void app_commands_get_next() {
 
 	char strBuf[1024];
 	int cmd;
-	char* arg;
-	char* name;
+	const void* arg;
+	const char* name;
 	sem_wait(&semaphorDeezer);
 
 	cmd=deezerCmd[deezerCmdIndexRd].Cmd;
@@ -671,6 +783,7 @@ static void app_commands_get_next() {
 		case DEEZER_CMD_START:
 			app_playback_start();
 			break;
+
 		case DEEZER_CMD_STOP:
 			app_playback_stop();
 			break;
@@ -678,6 +791,7 @@ static void app_commands_get_next() {
 		case DEEZER_CMD_RESUME:
 			app_playback_resume();
 			break;
+
 		case DEEZER_CMD_PAUSE:
 			app_playback_pause_or_resume();
 			if(mpcPause)
@@ -708,8 +822,6 @@ static void app_commands_get_next() {
 			app_playback_toogle_repeat();
 			break;
 
-
-
 		case DEEZER_CMD_RANDOM_ON:
 			app_playback_random_on();
 			break;
@@ -725,11 +837,10 @@ static void app_commands_get_next() {
 
 		case DEEZER_CMD_LOAD_ALBUM:
 			system("mpc clear");
-			sprintf(strBuf,"dzmedia:///album/%s",arg);
-			app_change_content(strBuf);
-			app_load_content();
-			szCurrentSong=name;
+			app_load_album((peeAlbum*)arg);
+			szCurrentSong=NULL;
 			break;
+
 		case DEEZER_CMD_LOAD_PLAYLIST:
 			system("mpc clear");
 			sprintf(strBuf,"dzmedia:///playlist/%s",arg);
@@ -737,13 +848,7 @@ static void app_commands_get_next() {
 			app_load_content();
 			szCurrentSong=name;
 			break;
-		case DEEZER_CMD_LOAD_PODCAST:
-			system("mpc clear");
-			sprintf(strBuf,"dzmedia:///show/%s",arg);
-			app_change_content(strBuf);
-			app_load_content();
-			szCurrentSong=name;
-			break;
+
 		case DEEZER_CMD_LOAD_PODCAST_MP3:
 			app_playback_stop();
 			mpcPause=0;
@@ -752,6 +857,7 @@ static void app_commands_get_next() {
 			system(strBuf);//launch mp3 player
 			szCurrentSong=name;
 			break;
+
 		case DEEZER_CMD_LOAD_DIR_MP3:
 			app_playback_stop();
 			mpcPause=0;
@@ -768,11 +874,19 @@ static void app_commands_get_next() {
 int deezerLaunch(char* token)
 {
 	pthread_t my_thread;
+	pthread_t my_thread_recoreder;
 	int ret;
 
 	sem_init(&semaphorDeezer,0,0);
+	sem_init(&semaphorRecord,0,0);
 
 	ret =  pthread_create(&my_thread, NULL, &mainDeezer, token);
+	if(ret != 0) {
+		printf("Error: pthread_create() failed\n");
+		exit(EXIT_FAILURE);
+	}
+
+	ret =  pthread_create(&my_thread_recoreder, NULL, &mainRecord, token);
 	if(ret != 0) {
 		printf("Error: pthread_create() failed\n");
 		exit(EXIT_FAILURE);
@@ -782,8 +896,7 @@ int deezerLaunch(char* token)
 	return 0;
 }
 
-
-int deezerPostCommand(uint32_t cmd,const char* arg,const char* name )
+int deezerPostCommand(uint32_t cmd,const void* arg,const char* name )
 {
 
 	deezerCmd[deezerCmdIndexWr].Cmd=cmd;
@@ -797,7 +910,7 @@ int deezerPostCommand(uint32_t cmd,const char* arg,const char* name )
 	sem_post(&semaphorDeezer);
 }
 
-char* deezerGetSongName()
+const char* deezerGetSongName()
 {
 	return szCurrentSong;
 }

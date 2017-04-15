@@ -146,12 +146,14 @@ void guiBase::RenderRoundRect(int x, int y, int w, int h, int rw, int rh)
 
 void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 {
-	ovgText( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
+	if(s!=NULL)
+		ovgText( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
 }
 
 void guiBase::RenderTextMid(int x, int y, const char *s, int pointsize)
 {
-	ovgTextMid( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
+	if(s!=NULL)
+		ovgTextMid( x,  (screenSizeY-y)-pointsize, s,  SerifTypeface,  pointsize);
 }
 
 
