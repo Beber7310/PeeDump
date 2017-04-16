@@ -323,13 +323,13 @@ vector<peeTrack*>* toolsGetUserPlaylistTracks(peePlaylist* pPlaylist)
 		const char* title;
 		const char* artist;
 		const char* album;
-		int pos;
+		int pos=0;
 		int length;
 
 		id=tracksNode->FirstChildElement("id")->FirstChild()->Value();
 		title=tracksNode->FirstChildElement("title")->FirstChild()->Value();
 		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
-		pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
+		//pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
 		artist=tracksNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
 		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
 

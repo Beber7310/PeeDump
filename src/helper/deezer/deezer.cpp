@@ -708,19 +708,19 @@ void app_player_onevent_cb( dz_player_handle       handle,
 						app_ctxt->pAlbum->_albumName);
 				system(szcmd);
 
-				sprintf(szcmd," %s/mp3/%s/%s/%2.2i-%s.mp3",
+				sprintf(szcmd," %s/mp3/%s/%s/%s.mp3",
 						DOWNLOAD_ROOT_DIR,
 						app_ctxt->pAlbum->_artisteName,
 						app_ctxt->pAlbum->_albumName,
-						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
+						//app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
 						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
 				if(access( szcmd, F_OK ) == -1 )
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%2.2i-%s.mp3\"",
+					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%s.mp3\"",
 							DOWNLOAD_ROOT_DIR,
 							app_ctxt->pAlbum->_artisteName,
 							app_ctxt->pAlbum->_albumName,
-							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
+							//app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
 							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
 					//printf("%s\n",szcmd);
 					system(szcmd);
@@ -740,19 +740,19 @@ void app_player_onevent_cb( dz_player_handle       handle,
 						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum);
 				system(szcmd);
 
-				sprintf(szcmd," %s/mp3/%s/%s/%2.2i-%s.mp3",
+				sprintf(szcmd," %s/mp3/%s/%s/%s.mp3",
 						DOWNLOAD_ROOT_DIR,
 						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
 						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
+						//app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
 						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
 				if(access( szcmd, F_OK ) == -1 )
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%2.2i-%s.mp3\"",
+					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%s.mp3\"",
 							DOWNLOAD_ROOT_DIR,
 							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
 							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
-							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
+							//app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
 							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
 					//printf("%s\n",szcmd);
 					system(szcmd);
