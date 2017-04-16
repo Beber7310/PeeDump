@@ -26,6 +26,7 @@ std::vector<peeAlbum*>* 		toolsGetUserAlbums(uint32_t userId);
 std::vector<peeTrack*>* 		toolsGetUserAlbumTracks(peeAlbum* pAlbum);
 
 std::vector<peePlaylist*>* 		toolsGetUserPlaylists(uint32_t userId);
+std::vector<peeTrack*>* 		toolsGetUserPlaylistTracks(peePlaylist* pPlaylist);
 
 std::vector<peePodcast*>*  		toolsGetPodcast(void);				 	// podcast from config file
 void 							toolsUpdateUserPodcastTracks(std::vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource);

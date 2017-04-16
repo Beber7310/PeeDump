@@ -62,6 +62,7 @@ typedef struct {
 	bool                  is_playing_album;
 	bool                  is_playing_playlist;
 	peeAlbum*			  pAlbum;
+	peePlaylist*		  pPlaylist;
 } app_context;
 
 typedef app_context *app_context_handle;
@@ -371,6 +372,17 @@ static void app_play_afterload_album(
 	dz_player_play(app_ctxt->dzplayer, NULL, NULL,DZ_PLAYER_PLAY_CMD_START_TRACKLIST,DZ_INDEX_IN_QUEUELIST_CURRENT);
 }
 
+static void app_play_afterload_playlist(
+		void* delegate,
+		void* operation_userdata,
+		dz_error_t status,
+		dz_object_handle result)
+{
+	log("PLAY PLAYLIST TRACK\n");
+	//dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
+	dz_player_play(app_ctxt->dzplayer, NULL, NULL,DZ_PLAYER_PLAY_CMD_START_TRACKLIST,DZ_INDEX_IN_QUEUELIST_CURRENT);
+}
+
 static void app_load_content() {
 	log("LOAD => %s\n", app_ctxt->sz_content_url);
 
@@ -391,11 +403,29 @@ static void app_load_album(peeAlbum* pAlbum) {
 
 	app_ctxt->is_playing_album=true;
 	app_ctxt->is_playing_playlist=false;
+
 	app_ctxt->pAlbum=pAlbum;
+	app_ctxt->pPlaylist=NULL;
 
 	sprintf(szTemp,"dzmedia:///track/%s",pAlbum->_tracks->at(pAlbum->_currentTrack)->_id);
 	log("LOAD ALBUM TRACKS=> %s\n", szTemp);
 	dz_player_load(app_ctxt->dzplayer,&app_play_afterload_album,NULL,szTemp);
+}
+
+static void app_load_playlist(peePlaylist* pPlaylist) {
+	char szTemp[512];
+
+	system("killall -q parec lame");
+
+	app_ctxt->is_playing_album=false;
+	app_ctxt->is_playing_playlist=true;
+
+	app_ctxt->pAlbum=NULL;
+	app_ctxt->pPlaylist=pPlaylist;
+
+	sprintf(szTemp,"dzmedia:///track/%s",pPlaylist->_tracks->at(pPlaylist->_currentTrack)->_id);
+	log("LOAD PLAYLIST TRACKS=> %s\n", szTemp);
+	dz_player_load(app_ctxt->dzplayer,&app_play_afterload_playlist,NULL,szTemp);
 }
 
 static void app_load_album_next() {
@@ -410,11 +440,22 @@ static void app_load_album_next() {
 	}
 }
 
+static void app_load_playlist_next() {
+	char szTemp[512];
+
+	app_ctxt->pPlaylist->_currentTrack++;
+	if(app_ctxt->pPlaylist->_currentTrack<app_ctxt->pPlaylist->_tracks->size())
+	{
+		sprintf(szTemp,"dzmedia:///track/%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_id);
+		log("LOAD PLAYLIST TRACKS=> %s\n", szTemp);
+		dz_player_load(app_ctxt->dzplayer,&app_play_afterload_playlist,NULL,szTemp);
+	}
+}
 
 static void app_playback_start_or_stop() {
 
 	if (!app_ctxt->is_playing) {
-		log("PLAY track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
+		//log("PLAY track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_play(app_ctxt->dzplayer, NULL, NULL,
 				DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
 				DZ_INDEX_IN_QUEUELIST_CURRENT);
@@ -428,7 +469,7 @@ static void app_playback_start_or_stop() {
 static void app_playback_start() {
 
 	if (!app_ctxt->is_playing) {
-		log("PLAY track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
+		//log("PLAY track n° %d of => %s\n", app_ctxt->nb_track_played, app_ctxt->sz_content_url);
 		dz_player_play(app_ctxt->dzplayer, NULL, NULL,
 				DZ_PLAYER_PLAY_CMD_START_TRACKLIST,
 				DZ_INDEX_IN_QUEUELIST_CURRENT);
@@ -562,7 +603,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_LOADED:
-			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
+			//log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
 			app_playback_start();
 			break;
 
@@ -603,6 +644,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			selected_dzapiinfo = dz_player_event_track_selected_dzapiinfo(event);
 			next_dzapiinfo = dz_player_event_track_selected_next_track_dzapiinfo(event);
 
+			/*
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_TRACK_SELECTED for idx: %d - is_preview:%d\n", context, idx, is_preview);
 			log("\tcan_pause_unpause:%d can_seek:%d nb_skip_allowed:%d\n", can_pause_unpause, can_seek, nb_skip_allowed);
 			if (selected_dzapiinfo)
@@ -610,6 +652,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 				log("\tnow playin!:\n");
 			if (next_dzapiinfo)
 				log("\tnext:%s\n", next_dzapiinfo);
+			*/
 		}
 
 		app_ctxt->nb_track_played++;
@@ -635,6 +678,11 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			{
 				sem_post(&semaphorRecord);
 				log("START: %s %s %s\n",app_ctxt->pAlbum->_artisteName,app_ctxt->pAlbum->_albumName,app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+			}
+			if(app_ctxt->is_playing_playlist)
+			{
+				sem_post(&semaphorRecord);
+				log("START: %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
 			}
 			break;
 
@@ -664,19 +712,52 @@ void app_player_onevent_cb( dz_player_handle       handle,
 						DOWNLOAD_ROOT_DIR,
 						app_ctxt->pAlbum->_artisteName,
 						app_ctxt->pAlbum->_albumName,
-						app_ctxt->pAlbum->_currentTrack+1,
+						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
 						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
-				if(access( szcmd, F_OK ) != -1 )
+				if(access( szcmd, F_OK ) == -1 )
 				{
 					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%2.2i-%s.mp3\"",
 							DOWNLOAD_ROOT_DIR,
 							app_ctxt->pAlbum->_artisteName,
 							app_ctxt->pAlbum->_albumName,
-							app_ctxt->pAlbum->_currentTrack+1,
+							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
 							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+					//printf("%s\n",szcmd);
 					system(szcmd);
 				}
 				app_load_album_next();
+			}
+
+			if(app_ctxt->is_playing_playlist)
+			{
+				log("END: %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+				system("killall -q parec lame");
+				char szcmd[512];
+
+				sprintf(szcmd,"mkdir -p \"%s/mp3/%s/%s\"",
+						DOWNLOAD_ROOT_DIR,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum);
+				system(szcmd);
+
+				sprintf(szcmd," %s/mp3/%s/%s/%2.2i-%s.mp3",
+						DOWNLOAD_ROOT_DIR,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+				if(access( szcmd, F_OK ) == -1 )
+				{
+					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%2.2i-%s.mp3\"",
+							DOWNLOAD_ROOT_DIR,
+							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
+							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
+							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
+							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+					//printf("%s\n",szcmd);
+					system(szcmd);
+				}
+				app_load_playlist_next();
 			}
 
 			break;
@@ -716,6 +797,10 @@ void app_player_onevent_cb( dz_player_handle       handle,
 void* mainRecord(void* voidtoken) {
 
 	char szCmd[512];
+	char szAlbum[256];
+	char szArtist[256];
+	char szTilte[256];
+
 	while(1)
 	{
 		/*
@@ -726,15 +811,27 @@ void* mainRecord(void* voidtoken) {
 		  --tc <comment>  user-defined text (max 30 chars for v1 tag, 28 for v1.1)
 		  --tn <track[/total]>   audio/song track number and (optionally) the total
 		 */
-
 		sem_wait(&semaphorRecord);
+
+		if(app_ctxt->is_playing_album)
+		{
+			sprintf(szAlbum,"%s",app_ctxt->pAlbum->_albumName);
+			sprintf(szArtist,"%s",app_ctxt->pAlbum->_artisteName);
+			sprintf(szTilte,"%s",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+		}
+		if(app_ctxt->is_playing_playlist)
+		{
+			sprintf(szAlbum,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum);
+			sprintf(szArtist,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist);
+			sprintf(szTilte,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+		}
 		sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
 				"--tt \"%s\" "
 				"--ta \"%s\" "
 				"--tl \"%s\" ",
-				app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title,
-				app_ctxt->pAlbum->_artisteName,
-				app_ctxt->pAlbum->_albumName);
+				szTilte,
+				szArtist,
+				szAlbum);
 		log("Start record\n");
 		system(szCmd);
 		log("End record\n");
@@ -842,11 +939,17 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_LOAD_PLAYLIST:
+			/*
 			system("mpc clear");
 			sprintf(strBuf,"dzmedia:///playlist/%s",arg);
 			app_change_content(strBuf);
 			app_load_content();
 			szCurrentSong=name;
+			*/
+			system("mpc clear");
+			app_load_playlist((peePlaylist*)arg);
+			szCurrentSong=NULL;
+
 			break;
 
 		case DEEZER_CMD_LOAD_PODCAST_MP3:
@@ -876,6 +979,8 @@ int deezerLaunch(char* token)
 	pthread_t my_thread;
 	pthread_t my_thread_recoreder;
 	int ret;
+
+	system("killall -q parec lame");
 
 	sem_init(&semaphorDeezer,0,0);
 	sem_init(&semaphorRecord,0,0);

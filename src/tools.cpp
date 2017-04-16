@@ -243,13 +243,20 @@ vector<peeTrack*>* toolsGetUserAlbumTracks(peeAlbum* pAlbum)
 	{
 		const char* id;
 		const char* title;
+		const char* artist;
+		const char* album;
+
 		int length;
+		int pos;
 
 		id=tracksNode->FirstChildElement("id")->FirstChild()->Value();
 		title=tracksNode->FirstChildElement("title")->FirstChild()->Value();
 		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
+		pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
+		artist=tracksNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
+		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
 
-		retAlbum->push_back(new peeTrack(id,title,length,pAlbum));
+		retAlbum->push_back(new peeTrack(id,title,length,pAlbum,album,artist,pos));
 
 		tracksNode=tracksNode->NextSibling();
 	}
@@ -289,6 +296,49 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	}
 
 	return retPlaylist;
+}
+
+
+vector<peeTrack*>* toolsGetUserPlaylistTracks(peePlaylist* pPlaylist)
+{
+	XMLDocument xmlDoc;
+	char url [1024];
+	char *fileBuf;
+	uint32_t albumId;
+
+
+
+	sprintf(url,"http://api.deezer.com/playlist/%s&output=xml",pPlaylist->_id);
+	fileBuf = toolsGetHtml(url);
+
+	xmlDoc.Parse( fileBuf, strlen(fileBuf));
+	free(fileBuf);
+	XMLNode* tracksNode = xmlDoc.FirstChildElement( )->FirstChildElement( "tracks" )->FirstChildElement( "data")->FirstChildElement( "track") ;
+
+	vector<peeTrack*>* retAlbum =new std::vector<peeTrack*>;
+
+	while(tracksNode!=NULL)
+	{
+		const char* id;
+		const char* title;
+		const char* artist;
+		const char* album;
+		int pos;
+		int length;
+
+		id=tracksNode->FirstChildElement("id")->FirstChild()->Value();
+		title=tracksNode->FirstChildElement("title")->FirstChild()->Value();
+		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
+		pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
+		artist=tracksNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
+		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
+
+		retAlbum->push_back(new peeTrack(id,title,length,pPlaylist,album,artist,pos));
+
+		tracksNode=tracksNode->NextSibling();
+	}
+
+	return retAlbum;
 }
 
 void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource)

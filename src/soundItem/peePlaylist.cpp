@@ -11,6 +11,7 @@
 #include <iostream>
 
 #include "peePlaylist.h"
+#include "tools.h"
 
 using namespace std;
 
@@ -19,6 +20,8 @@ peePlaylist::peePlaylist() {
 	_id=NULL;
 	_name=NULL;
 	_coverHtmplPath=NULL;
+	_tracks=NULL;
+	_currentTrack=0;
 }
 
 peePlaylist::~peePlaylist() {
@@ -34,11 +37,22 @@ peePlaylist::peePlaylist(const char*  id,const char* name,const char* coverHtmpl
 	strcpy(_id,id);
 	strcpy(_name,name);
 	strcpy(_coverHtmplPath,coverHtmplPath);
-
-
+	_tracks=NULL;
+	_currentTrack=0;
 }
 
 void peePlaylist::print() {
 	cout << _name  << "(" << _id << ")" <<  endl;
+	if(_tracks!=NULL)
+		{
+			for (vector<peeTrack*>::iterator it = _tracks ->begin(); it != _tracks->end(); it++)
+			{
+				(*it)->print();
+			}
+		}
+}
 
+void peePlaylist::fetchTracks() {
+	if(_tracks==NULL)
+		_tracks=toolsGetUserPlaylistTracks(this);
 }

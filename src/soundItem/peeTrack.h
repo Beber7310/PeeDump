@@ -7,19 +7,29 @@
 
 #ifndef SOUNDITEM_PEETRACK_H_
 #define SOUNDITEM_PEETRACK_H_
+#include <vector>
 
 #include "peeBase.h"
 #include "peeAlbum.h"
+#include "peePlaylist.h"
 
 class peeAlbum;
+class peePlaylist;
 
 class peeTrack : public peeBase {
 public:
-	peeTrack(const char* id,const char* title,int length, peeAlbum* pAlbum);
+	peeTrack(const char* id,const char* title,int length, peeAlbum*    pAlbum,   const char* szAlbum, const char* szArtist, int pos);
+	peeTrack(const char* id,const char* title,int length, peePlaylist* pPlaylist,const char* szAlbum, const char* szArtist,int pos);
+
 	virtual ~peeTrack();
 
 	int _length;
 	peeAlbum* _pAlbum;
+	peePlaylist* _pPlaylist;
+	int _Position;
+
+	char* _szAlbum;
+	char* _szArtist;
 
 	void print();
 };

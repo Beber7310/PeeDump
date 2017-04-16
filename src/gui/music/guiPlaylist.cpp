@@ -58,7 +58,12 @@ void guiPlaylist::Mouse(stMouse* pMouse)
 		{
 			_color=100;
 			_selected=true;
-			deezerPostCommand(DEEZER_CMD_LOAD_PLAYLIST,_pPlaylist->_id,_pPlaylist->_name);
+
+			_pPlaylist->fetchTracks();
+			_pPlaylist->print();
+
+			//deezerPostCommand(DEEZER_CMD_LOAD_PLAYLIST,_pPlaylist->_id,_pPlaylist->_name);
+			deezerPostCommand(DEEZER_CMD_LOAD_PLAYLIST,_pPlaylist,NULL);
 		}
 
 

@@ -24,7 +24,7 @@ public:
 	char* _artisteName;
 	char* _albumName;
 	char* _coverHtmplPath;
-	int			_currentTrack;
+	int	  _currentTrack;
 	std::vector<peeTrack*>* _tracks;
 
 	void fetchTracks();
