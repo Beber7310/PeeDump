@@ -14,10 +14,14 @@ IF "%2"=="" (
 	EXIT /b
 )
 
+
+rem SET RASPBERRYPI_ADDR=Peezer
+SET RASPBERRYPI_ADDR=192.168.1.16
+
+
 SET PUTTYSCP_BIN="C:\Program Files (x86)\WinSCP\pscp.exe"
 SET PUTTY_BIN="C:\Program Files (x86)\WinSCP\putty.exe"
-SET RASPBERRYPI_ADDR=Peezer
-SET USERNAME=pi
+SET ET USERNAME=pi
 SET PASSWORD=raspberry
 SET CMD_FILENAME=commands.sh
 
