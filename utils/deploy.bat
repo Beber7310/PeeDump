@@ -21,7 +21,12 @@ SET RASPBERRYPI_ADDR=192.168.1.16
 
 SET PUTTYSCP_BIN="C:\Program Files (x86)\WinSCP\pscp.exe"
 SET PUTTY_BIN="C:\Program Files (x86)\WinSCP\putty.exe"
+<<<<<<< Upstream, based on origin/master
 SET ET USERNAME=pi
+=======
+SET RASPBERRYPI_ADDR=BooM
+SET USERNAME=pi
+>>>>>>> 5d9f519 minor fix
 SET PASSWORD=raspberry
 SET CMD_FILENAME=commands.sh
 

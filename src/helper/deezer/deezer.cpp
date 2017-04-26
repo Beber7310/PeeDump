@@ -603,7 +603,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_LOADED:
-			//log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
+			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
 			app_playback_start();
 			break;
 
@@ -669,6 +669,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START_FAILURE:
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START_FAILURE for idx: %d\n", context, idx);
 			app_ctxt->is_playing = false;
+			system("killall -q parec lame");
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START:
@@ -682,7 +683,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			if(app_ctxt->is_playing_playlist)
 			{
 				sem_post(&semaphorRecord);
-				log("START: %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+				log("START: %s %s %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title,
+										app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
+										app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist);
 			}
 			break;
 
@@ -702,59 +705,36 @@ void app_player_onevent_cb( dz_player_handle       handle,
 				system("killall -q parec lame");
 				char szcmd[512];
 
-				sprintf(szcmd,"mkdir -p \"%s/mp3/%s/%s\"",
-						DOWNLOAD_ROOT_DIR,
-						app_ctxt->pAlbum->_artisteName,
-						app_ctxt->pAlbum->_albumName);
+				sprintf(szcmd,"mkdir -p \"%s\"",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_localDir);
+				printf("%s\n",szcmd);
 				system(szcmd);
 
-				sprintf(szcmd," %s/mp3/%s/%s/%s.mp3",
-						DOWNLOAD_ROOT_DIR,
-						app_ctxt->pAlbum->_artisteName,
-						app_ctxt->pAlbum->_albumName,
-						//app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
-						app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
-				if(access( szcmd, F_OK ) == -1 )
+				if(!app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->checkDownload())
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%s.mp3\"",
-							DOWNLOAD_ROOT_DIR,
-							app_ctxt->pAlbum->_artisteName,
-							app_ctxt->pAlbum->_albumName,
-							//app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_Position,
-							app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
-					//printf("%s\n",szcmd);
+					sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_localPath);
+					printf("%s\n",szcmd);
 					system(szcmd);
 				}
+
 				app_load_album_next();
 			}
 
 			if(app_ctxt->is_playing_playlist)
 			{
-				log("END: %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+				log("END: %s %s %s\n",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
+						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist);
 				system("killall -q parec lame");
 				char szcmd[512];
 
-				sprintf(szcmd,"mkdir -p \"%s/mp3/%s/%s\"",
-						DOWNLOAD_ROOT_DIR,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum);
+				sprintf(szcmd,"mkdir -p \"%s\"",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_localDir);
+				printf("%s\n",szcmd);
 				system(szcmd);
 
-				sprintf(szcmd," %s/mp3/%s/%s/%s.mp3",
-						DOWNLOAD_ROOT_DIR,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
-						//app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
-						app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
-				if(access( szcmd, F_OK ) == -1 )
+				if(!app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->checkDownload())
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s/mp3/%s/%s/%s.mp3\"",
-							DOWNLOAD_ROOT_DIR,
-							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist,
-							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum,
-							//app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_Position,
-							app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
-					//printf("%s\n",szcmd);
+					sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_localPath);
+					printf("%s\n",szcmd);
 					system(szcmd);
 				}
 				app_load_playlist_next();
@@ -785,6 +765,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 		case DZ_PLAYER_EVENT_RENDER_TRACK_REMOVED:
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_REMOVED for idx: %d\n", context, idx);
 			app_ctxt->is_playing = false;
+			system("killall -q parec lame");
 			break;
 
 		case DZ_PLAYER_EVENT_UNKNOWN:
@@ -906,7 +887,13 @@ static void app_commands_get_next() {
 			break;
 
 		case DEEZER_CMD_NEXT:
-			app_playback_next();
+			if(app_ctxt->is_playing_album)
+				app_load_album_next();
+			else if(app_ctxt->is_playing_playlist)
+				app_load_playlist_next();
+			else
+				app_playback_next();
+
 			system("mpc next");
 			break;
 

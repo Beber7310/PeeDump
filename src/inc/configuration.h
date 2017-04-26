@@ -8,15 +8,21 @@
 #ifndef INC_CONFIGURATION_H_
 #define INC_CONFIGURATION_H_
 
-#define BOOMBOOM_SALON
+//#define BOOMBOOM_SALON
+#define BOOMBOOM_MAMIE
 //#define BOOMBOOM_DAPHNEE
 
 
 #ifdef BOOMBOOM_SALON
 	#define SCREEN_7P
 	#define DOWNLOAD_ROOT_DIR "/mnt/usbdrive/"
+	#define HOMECONTROL
+	#define DEEZER
 #elif defined(BOOMBOOM_DAPHNEE)
 	#define SCREEN_5P
+	#define DOWNLOAD_ROOT_DIR "/home/pi/projects/audio/"
+#elif defined(BOOMBOOM_MAMIE)
+	#define SCREEN_7P
 	#define DOWNLOAD_ROOT_DIR "/home/pi/projects/audio/"
 #endif
 

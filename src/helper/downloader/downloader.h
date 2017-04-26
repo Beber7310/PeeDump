@@ -8,7 +8,6 @@
 #ifndef HELPER_DOWNLOADER_DOWNLOADER_H_
 #define HELPER_DOWNLOADER_DOWNLOADER_H_
 
-//#define DOWNLOAD_ROOT_DIR "/mnt/usbdrive/"
 
 void toolsDownloadInit(void);
 int toolsDownloadPodcast(peePodcastTrack* peePodcast);

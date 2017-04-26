@@ -59,6 +59,7 @@ void* guiThread(void * p) {
 	struct timeval tv;
 	unsigned long lasttime;
 	unsigned long microseconds;
+	struct timespec ts;
 
 	int lastUpdate=0;
 
@@ -74,7 +75,9 @@ void* guiThread(void * p) {
 
 		if(currentWindows)
 		{
-			sem_wait(&semaphorDraw);
+			clock_gettime(CLOCK_REALTIME, &ts);
+			ts.tv_sec +=1;
+			sem_timedwait(&semaphorDraw,&ts);
 			pthread_mutex_lock(&mousseLock);
 			if(((stMouse*) p)->update!=lastUpdate)
 			{
