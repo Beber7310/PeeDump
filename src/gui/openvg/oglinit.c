@@ -143,7 +143,7 @@ void oglinit(STATE_T * state, DISPMANX_CALLBACK_FUNC_T cb_func) {
 	vc_dispmanx_update_submit_sync(dispman_update);
 
 	vc_dispmanx_vsync_callback(dispman_display, NULL, NULL); // disable callback
-	vc_dispmanx_vsync_callback(dispman_display, cb_func, NULL); // disable callback
+	//vc_dispmanx_vsync_callback(dispman_display, cb_func, NULL); // disable callback
 
 	state->surface = eglCreateWindowSurface(state->display, config, &nativewindow, NULL);
 	assert(state->surface != EGL_NO_SURFACE);

@@ -6,6 +6,7 @@
  */
 
 #include "guiTabLayout.h"
+#include "guiRoot.h"
 #include <math.h>
 
 guiTabLayout::guiTabLayout() {
@@ -28,12 +29,25 @@ void guiTabLayout::Render(void)
 
 	guiBase* pG=_ChildFirst;
 
-	if(abs(_xTarget-_xOrigin)<100)
+	if(_xTarget==_xOrigin)
+	{
+
+	}
+	else if(abs(_xTarget-_xOrigin)<100)
+	{
 		_xOrigin=_xTarget;
+		guiInvalidate();
+	}
 	else if(_xTarget>_xOrigin)
+	{
 		_xOrigin+=80;
+		guiInvalidate();
+	}
 	else
+	{
 		_xOrigin-=80;
+		guiInvalidate();
+	}
 
 	ComputeChildAbsPos();
 

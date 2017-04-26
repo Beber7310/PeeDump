@@ -16,5 +16,6 @@ int guiSetMainWindows(guiBase* pWin);
 int guiSetMainWindows(guiBase* pWin);
 int guiPopup(guiBase* pWin);
 int guiExitPopup();
+void guiInvalidate();
 
 #endif /* GUI_FRAMEWORK_GUIROOT_H_ */

@@ -31,7 +31,6 @@
 #include "guiRoot.h"
 
 
-static pthread_mutex_t vSynclock;
 static pthread_mutex_t mousseLock;
 static sem_t semaphorDraw;
 
@@ -44,10 +43,7 @@ guiBase* mainWindows=NULL;
 guiBase* popupWindows=NULL;
 int screenWidth=200, screenHeight=200;
 
-void guiVSyncCallBack(DISPMANX_UPDATE_HANDLE_T u, void * arg)
-{
-	pthread_mutex_unlock(&vSynclock);
-}
+
 
 unsigned long lasttime = 0;
 
@@ -63,7 +59,7 @@ void* guiThread(void * p) {
 
 	int lastUpdate=0;
 
-	ovginit(&screenWidth, &screenHeight,&guiVSyncCallBack);				   // Graphics initialization
+	ovginit(&screenWidth, &screenHeight,NULL);				   // Graphics initialization
 
 	//guiBase* mainWindows=guiBuild();
 	currentWindows->Resize(0,0,screenWidth,screenHeight);
@@ -105,12 +101,6 @@ void* guiThread(void * p) {
 				ovgEnd(); //Moved in callback
 			}
 		}
-
-
-
-
-
-							   // End the picture
 	}
 }
 
@@ -194,7 +184,7 @@ void* guiMouseThread(void * p)
 			pMouse->update++;
 			//printf("%3.3i %3.3i %1.1i\n",pMouse->x, pMouse->y,pMouse->t);
 			pthread_mutex_unlock(&mousseLock);
-			sem_post(&semaphorDraw);
+			guiInvalidate();
 		}
 	}
 
@@ -203,6 +193,11 @@ void* guiMouseThread(void * p)
 	err:
 	close(fd);
 	return 0;
+}
+
+void guiInvalidate()
+{
+	sem_post(&semaphorDraw);
 }
 
 int guiLaunch(void)
@@ -218,11 +213,6 @@ int guiLaunch(void)
 		return 1;
 	}
 
-	if (pthread_mutex_init(&vSynclock, NULL) != 0)
-	{
-		printf("\n vSynclock  mutex init failed\n");
-		return 1;
-	}
 
 	sem_init(&semaphorDraw,0,1);
 
@@ -252,6 +242,8 @@ int guiPopup(guiBase* pWin)
 	popupWindows=pWin;
 	return 0;
 }
+
+
 
 int guiExitPopup()
 {
