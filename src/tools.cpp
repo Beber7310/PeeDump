@@ -247,15 +247,15 @@ vector<peeTrack*>* toolsGetUserAlbumTracks(peeAlbum* pAlbum)
 		const char* album;
 
 		int length;
-		int pos;
+		int pos=0;
 
 		id=tracksNode->FirstChildElement("id")->FirstChild()->Value();
 		title=tracksNode->FirstChildElement("title")->FirstChild()->Value();
 		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
-		pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
+		//pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
 		artist=tracksNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
-		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
-
+		//album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
+		album=pAlbum->_albumName;
 		retAlbum->push_back(new peeTrack(id,title,length,pAlbum,album,artist,pos));
 
 		tracksNode=tracksNode->NextSibling();
@@ -459,7 +459,7 @@ int toolsCleanUTF8(char* szString)
 	int dst=0;
 	for(int i=0;i<len;i++)
 	{
-		if(szString[i]>0xC0)
+		if((szString[i]&0xF0)==0xC0)
 		{
 			i++;
 
@@ -493,6 +493,17 @@ int toolsCleanUTF8(char* szString)
 				//printf("Missed! 0x%x : %s\n",szString[i],szString);
 			}
 		}
+		else if((szString[i]&0xF0)==0xE0)
+		{
+			i+=3;
+			szString[dst]=' ';
+		}
+		else if((szString[i]&0xF0)==0xF0)
+		{
+			i+=4;
+			szString[dst]=' ';
+		}
+
 		else if(isalnum(szString[i]) || szString[i]==' '|| szString[i]=='/'|| szString[i]=='.')
 		{
 			szString[dst]=szString[i];
@@ -506,6 +517,10 @@ int toolsCleanUTF8(char* szString)
 		dst++;
 	}
 	szString[dst]=0;
+
+	while(szString[strlen(szString)-1]==' ')
+		szString[strlen(szString)-1]=0;
+
 	return 0;
 }
 

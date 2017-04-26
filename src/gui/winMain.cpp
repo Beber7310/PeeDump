@@ -39,18 +39,23 @@
 
 guiBase* guiBuild()
 {
-#ifdef BOOMBOOM_SALON
+#ifdef DEEZER
 	guiList* 			albumsWindows 		= new guiList();
 	guiList* 			playlistWindows 	= new guiList();
+#endif
+#ifdef	HOMECONTROL
 	guiList* 			homecontrolWindows  = new guiList();
 #endif
+
+
+
 	guiList*			mp3Windows		  	= new guiList();
 	guiList* 			podcastWindows  	= new guiList();
 	guiPlayer* 			playerWindows   	= new guiPlayer();
 	guiTabLayout*		tabLayout			= new guiTabLayout();
 	guiVerticalSplit*	verticalSplit		= new guiVerticalSplit();
 
-#ifdef BOOMBOOM_SALON
+#ifdef DEEZER
 	for (vector<peeAlbum*>::iterator it = appContext.Albums->begin(); it != appContext.Albums->end(); it++)
 	{
 		albumsWindows->AddChild(new guiAlbum(*it));
@@ -61,16 +66,19 @@ guiBase* guiBuild()
 		playlistWindows->AddChild(new guiPlaylist(*it));
 	}
 #endif
+
 	for (vector<peePodcast*>::iterator it = appContext.Podcasts->begin(); it != appContext.Podcasts->end(); it++)
 	{
 		podcastWindows->AddChild(new guiPodcast(*it));
 	}
 
 	// ADD MP3 Directory
-	DIR* dirp = opendir("audio/mp3/");
+	char szTmp[512];
+	sprintf(szTmp,"%s/mp3/",DOWNLOAD_ROOT_DIR);
+	DIR* dirp = opendir(szTmp);
 	if(dirp==NULL)
 	{
-		printf("audio/mp3/ not found...");
+		printf("audio/mp3/ not found... looking for :%s\n",szTmp);
 	}
 	else
 	{
@@ -83,7 +91,7 @@ guiBase* guiBuild()
 		(void)closedir(dirp);
 	}
 
-#ifdef BOOMBOOM_SALON
+#ifdef	HOMECONTROL
 	homecontrolWindows->AddChild(new guiCourant());
 	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_VMC));
 	homecontrolWindows->AddChild(new guiVmc(HC_LIGHT_DISCO));
@@ -98,24 +106,28 @@ guiBase* guiBuild()
 	homecontrolWindows->AddChild(new guiThermo(HC_TEMP_GARAGE));
 #endif
 
-#ifdef BOOMBOOM_SALON
+#ifdef DEEZER
 	playlistWindows->SetName("Playlists");
 	albumsWindows->SetName("Albums");
+#endif
+
+#ifdef	HOMECONTROL
 	homecontrolWindows->SetName("Home Control");
 #endif
+
 	podcastWindows->SetName("Podcasts");
 	playerWindows->SetName("Player");
 	mp3Windows->SetName("MP3");
 
 
 
-#ifdef BOOMBOOM_SALON
+#ifdef DEEZER
 	tabLayout->AddChild(playlistWindows);
 	tabLayout->AddChild(albumsWindows);
 #endif
 	tabLayout->AddChild(podcastWindows);
 	tabLayout->AddChild(mp3Windows);
-#ifdef BOOMBOOM_SALON
+#ifdef HOMECONTROL
 	tabLayout->AddChild(homecontrolWindows);
 #endif
 

@@ -22,6 +22,7 @@ public:
 	peeTrack(const char* id,const char* title,int length, peePlaylist* pPlaylist,const char* szAlbum, const char* szArtist,int pos);
 
 	virtual ~peeTrack();
+	bool checkDownload(void);
 
 	int _length;
 	peeAlbum* _pAlbum;
@@ -30,7 +31,8 @@ public:
 
 	char* _szAlbum;
 	char* _szArtist;
-
+	char* _localPath;
+	char* _localDir;
 	void print();
 };
 

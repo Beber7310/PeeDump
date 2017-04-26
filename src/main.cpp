@@ -21,15 +21,17 @@
 #include "downloader.h"
 #include "homeControl.h"
 #include "gui/winMain.h"
+#include "configuration.h"
 
 stAppContext appContext;
 
 
 int main(int argc, char *argv[]) {
+#ifdef	HOMECONTROL
 	homeControl* pHome=new homeControl();
-
-
 	pHome->refreshData();
+#endif
+
 	system("pactl unload-module module-combine-sink");
 	system("pulseaudio -D");
 	system("pactl load-module module-combine-sink   sink_name=record-n-play slaves=alsa_output.platform-soc_sound.analog-stereo");
@@ -55,8 +57,9 @@ int main(int argc, char *argv[]) {
 	winLaunch();
 
 	deezerLaunch(appContext.gToken);
-
+#ifdef	HOMECONTROL
 	homeControlLaunch();
+#endif
 
 	//while(!toolsGetNext(&appContext));
 
@@ -66,7 +69,9 @@ int main(int argc, char *argv[]) {
 
 		for(ii=0;ii<appContext.Podcasts->size();ii++)
 		{
+			sleep(10);
 			appContext.Podcasts->at(ii)->updatePodcast();
+
 		}
 		sleep(15*60);
 
