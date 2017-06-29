@@ -144,6 +144,11 @@ void guiBase::RenderRoundRect(int x, int y, int w, int h, int rw, int rh)
 	ovgRoundrect( fx,  fy,  fw,  fh,  frw,  frh);
 }
 
+void guiBase::SetPixels(int x, int y,int w, int h, VGImage img)
+{
+	vgSetPixels(x, (screenSizeY-y), img, 0, 0, w, h);
+}
+
 void guiBase::RenderText(int x, int y, const char *s, int pointsize)
 {
 	if(s!=NULL)

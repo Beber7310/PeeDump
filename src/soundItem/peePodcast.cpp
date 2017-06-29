@@ -66,6 +66,8 @@ void peePodcast::updatePodcast()
 {
  	toolsUpdateUserPodcastTracks(_traks,this,_htmlSource);
 	std::sort(_traks->begin(), _traks->end(), compare_podcast);
+
+
 }
 
 unsigned int peePodcast::GetNbrTracks()

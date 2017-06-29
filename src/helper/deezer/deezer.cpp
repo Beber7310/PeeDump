@@ -153,7 +153,7 @@ void* mainDeezer(void* voidtoken) {
 	app_ctxt = (app_context_handle)calloc(1,sizeof(app_context));
 
 	//This is hox to set music! --->
-#ifdef BOOMBOOM_SALON
+#ifdef DEEZER
 	app_change_content("dzmedia:///album/607845");
 
 	app_ctxt->dzconnect = dz_connect_new(&config);
@@ -423,7 +423,7 @@ static void app_load_playlist(peePlaylist* pPlaylist) {
 	app_ctxt->pAlbum=NULL;
 	app_ctxt->pPlaylist=pPlaylist;
 
-	sprintf(szTemp,"dzmedia:///track/%s",pPlaylist->_tracks->at(pPlaylist->_currentTrack)->_id);
+	sprintf(szTemp,"dzmedia:///track/%s",pPlaylist->_tracks->at(pPlaylist->GetFirstTrack())->_id);
 	log("LOAD PLAYLIST TRACKS=> %s\n", szTemp);
 	dz_player_load(app_ctxt->dzplayer,&app_play_afterload_playlist,NULL,szTemp);
 }
@@ -443,7 +443,7 @@ static void app_load_album_next() {
 static void app_load_playlist_next() {
 	char szTemp[512];
 
-	app_ctxt->pPlaylist->_currentTrack++;
+	app_ctxt->pPlaylist->GetNextTrack();
 	if(app_ctxt->pPlaylist->_currentTrack<app_ctxt->pPlaylist->_tracks->size())
 	{
 		sprintf(szTemp,"dzmedia:///track/%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_id);
@@ -609,6 +609,18 @@ void app_player_onevent_cb( dz_player_handle       handle,
 
 		case DZ_PLAYER_EVENT_QUEUELIST_NO_RIGHT:
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_NO_RIGHT for idx: %d\n", context, idx);
+			system("killall -q parec lame");
+
+
+						if(app_ctxt->is_playing_album)
+						{
+							app_load_album_next();
+						}
+
+						if(app_ctxt->is_playing_playlist)
+						{
+							app_load_playlist_next();
+						}
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_NEED_NATURAL_NEXT:
@@ -670,6 +682,18 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START_FAILURE for idx: %d\n", context, idx);
 			app_ctxt->is_playing = false;
 			system("killall -q parec lame");
+
+
+			if(app_ctxt->is_playing_album)
+			{
+				app_load_album_next();
+			}
+
+			if(app_ctxt->is_playing_playlist)
+			{
+				app_load_playlist_next();
+			}
+
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START:
@@ -678,7 +702,8 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			if(app_ctxt->is_playing_album)
 			{
 				sem_post(&semaphorRecord);
-				log("START: %s %s %s\n",app_ctxt->pAlbum->_artisteName,app_ctxt->pAlbum->_albumName,app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+				log("START: %s %s %s\n",app_ctxt->pAlbum->_artisteName,app_ctxt->pAlbum->_albumName,
+										app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
 			}
 			if(app_ctxt->is_playing_playlist)
 			{
@@ -781,6 +806,7 @@ void* mainRecord(void* voidtoken) {
 	char szAlbum[256];
 	char szArtist[256];
 	char szTilte[256];
+	char szCoverPath[512];
 
 	while(1)
 	{
@@ -799,20 +825,24 @@ void* mainRecord(void* voidtoken) {
 			sprintf(szAlbum,"%s",app_ctxt->pAlbum->_albumName);
 			sprintf(szArtist,"%s",app_ctxt->pAlbum->_artisteName);
 			sprintf(szTilte,"%s",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
+			sprintf(szCoverPath,"%s",app_ctxt->pAlbum->_localPathCover);
 		}
 		if(app_ctxt->is_playing_playlist)
 		{
 			sprintf(szAlbum,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szAlbum);
 			sprintf(szArtist,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist);
 			sprintf(szTilte,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
+			sprintf(szCoverPath,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_pAlbum->_localPathCover);
 		}
-		sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
+		sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet --ti \"%s\" -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
 				"--tt \"%s\" "
 				"--ta \"%s\" "
 				"--tl \"%s\" ",
+				szCoverPath,
 				szTilte,
 				szArtist,
 				szAlbum);
+		printf(szCmd);
 		log("Start record\n");
 		system(szCmd);
 		log("End record\n");

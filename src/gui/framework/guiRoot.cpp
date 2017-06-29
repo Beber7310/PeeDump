@@ -26,6 +26,7 @@
 #include <semaphore.h>
 
 #include "main.h"
+#include "winMain.h"
 
 #include "guiBase.h"
 #include "guiRoot.h"
@@ -47,6 +48,10 @@ int screenWidth=200, screenHeight=200;
 
 unsigned long lasttime = 0;
 
+void guiInit(){
+	ovginit(&screenWidth, &screenHeight,NULL);				   // Graphics initialization
+}
+
 void* guiThread(void * p) {
 
 	stMouse localMouse;
@@ -56,12 +61,13 @@ void* guiThread(void * p) {
 	unsigned long lasttime;
 	unsigned long microseconds;
 	struct timespec ts;
-
+	int vgErr;
 	int lastUpdate=0;
 
 	ovginit(&screenWidth, &screenHeight,NULL);				   // Graphics initialization
 
 	//guiBase* mainWindows=guiBuild();
+	guiSetMainWindows(guiBuild());
 	currentWindows->Resize(0,0,screenWidth,screenHeight);
 	currentWindows->SetScreenSize(screenWidth,screenHeight);
 
@@ -98,6 +104,10 @@ void* guiThread(void * p) {
 				ovgFill(toggle?255:0,255,255,1);
 
 				ovgCircle(localMouse.x,screenHeight-localMouse.y,10.0f);
+
+				vgErr=vgGetError();
+				if(vgErr)
+						printf("gui Thread vgGetError: %x\n",vgErr);
 				ovgEnd(); //Moved in callback
 			}
 		}
@@ -108,6 +118,7 @@ void* guiMouseThread(void * p)
 {
 	stMouse* pMouse;
 	int x=0,y=0,t=0;
+	int error_read=0;
 	struct input_event ev;
 	int fd;
 	char name[256] = "Unknown";
@@ -130,7 +141,7 @@ void* guiMouseThread(void * p)
 	printf("device name = %s\n", name);
 
 	for (;;) {
-		const size_t ev_size = sizeof(struct input_event);
+		const ssize_t ev_size = sizeof(struct input_event);
 		ssize_t size;
 
 		/* TODO: use select() */
@@ -138,32 +149,41 @@ void* guiMouseThread(void * p)
 		size = read(fd, &ev, ev_size);
 		if (size < ev_size) {
 			fprintf(stderr, "Error size when reading\n");
-			goto err;
-		}
-
-		if (ev.type == EV_ABS && ev.code == ABS_X) {
-			/* TODO: convert value to pixels */
-			//printf("X = %d\n", ev.value);
-			x=ev.value;
-			update=true;
-		}
-		if (ev.type == EV_ABS && ev.code == ABS_Y) {
-			/* TODO: convert value to pixels */
-			//printf("Y = %d\n", ev.value);
-			y=ev.value;
-			update=true;
-		}
-		else if(ev.type == EV_KEY && (ev.code == BTN_TOUCH))
-		{
-			//printf("touch: %i\n", ev.value);
-			t=ev.value;
-			if(!t)
-				update=true;
+			close(fd);
+			sleep(1);
+			fd = open(EVENT_DEVICE, O_RDONLY);
+			error_read++;
+			if(error_read>10)
+				goto err;
 		}
 		else
 		{
-			//printf("%x %x %x\n",ev.type, ev.code,ev.value);
+			error_read=0;
+			if (ev.type == EV_ABS && ev.code == ABS_X) {
+				/* TODO: convert value to pixels */
+				//printf("X = %d\n", ev.value);
+				x=ev.value;
+				update=true;
+			}
+			if (ev.type == EV_ABS && ev.code == ABS_Y) {
+				/* TODO: convert value to pixels */
+				//printf("Y = %d\n", ev.value);
+				y=ev.value;
+				update=true;
+			}
+			else if(ev.type == EV_KEY && (ev.code == BTN_TOUCH))
+			{
+				//printf("touch: %i\n", ev.value);
+				t=ev.value;
+				if(!t)
+					update=true;
+			}
+			else
+			{
+				//printf("%x %x %x\n",ev.type, ev.code,ev.value);
+			}
 		}
+
 
 		if(update)
 		{
@@ -177,7 +197,7 @@ void* guiMouseThread(void * p)
 			pMouse->x=480.0f*(y-250.0f)/3600.0f; // swap on purpose !!!
 			pMouse->y=800-(800.0f*(x-154.0f)/3800.0f); // swap on purpose !!!
 #else
-	#error
+#error
 #endif
 
 			pMouse->t=t;
@@ -187,10 +207,11 @@ void* guiMouseThread(void * p)
 			guiInvalidate();
 		}
 	}
-
+	printf("Endof mousse thread!\n");
 	return 0;
 
 	err:
+	printf("Fuck! error in mousse thread!\n");
 	close(fd);
 	return 0;
 }

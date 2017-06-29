@@ -70,6 +70,9 @@ void guiPodcast::CreatePopup()
 	for (unsigned int ii = 0; ii < _pPodcast->GetNbrTracks(); ii++)
 	{
 		peePodcastTrack* res=_pPodcast->GetTracksAt(ii);
+
+		printf("%i %s\n",ii,res->_title);
+
 		if(res!=NULL)
 			tracks->AddChild(new guiPodcastTrack(res));
 	}

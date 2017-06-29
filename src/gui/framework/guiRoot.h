@@ -10,6 +10,7 @@
 
 #include "guiBase.h"
 
+void guiInit(void);
 int guiLaunch(void);
 int guiSetMainWindows(guiBase* pWin);
 

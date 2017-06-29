@@ -16,6 +16,7 @@
 #include <pthread.h>
 #include <time.h>
 
+#include "configuration.h"
 #include "tools.h"
 #include "downloader.h"
 
@@ -47,9 +48,10 @@ peePodcastTrack::peePodcastTrack(peePodcast *pParent,tm* date, const char* title
 
 	char strtime[128];
 	strftime(strtime, sizeof(strtime), "%Y-%m-%d", &_date);
-	_localPath=(char*)malloc(strlen(pParent->_directory)+strlen(strtime)+strlen(_title)+50);
+	_localPath=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(pParent->_directory)+strlen(strtime)+strlen(_title)+50);
 	_localPath[0]=0;
-	strcpy (_localPath,"podcast/");
+	sprintf (_localPath,"%s/",DOWNLOAD_ROOT_DIR);
+	strcat (_localPath,"podcast/");
 	strcat (_localPath,pParent->_directory);
 	strcat (_localPath,"/");
 	strcat (_localPath,strtime);
@@ -79,7 +81,6 @@ peePodcastTrack::peePodcastTrack(peePodcast *pParent,tm* date, const char* title
 	}
 }
 
-
 void peePodcastTrack::checkDownload(void)
 {
 	_downloaded=false;
@@ -105,7 +106,6 @@ void peePodcastTrack::checkDownload(void)
 
 
 }
-
 
 peePodcastTrack::~peePodcastTrack() {
 	// TODO Auto-generated destructor stub

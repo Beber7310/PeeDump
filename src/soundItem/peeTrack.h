@@ -34,6 +34,7 @@ public:
 	char* _localPath;
 	char* _localDir;
 	void print();
+
 };
 
 #endif /* SOUNDITEM_PEETRACK_H_ */

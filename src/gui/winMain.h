@@ -25,5 +25,5 @@
 
 
 int winLaunch();
-
+guiBase* guiBuild();
 #endif /* GUI_WINMAIN_H_ */

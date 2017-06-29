@@ -38,11 +38,14 @@ peeTrack::peeTrack(const char* id,const char* title,int length,peeAlbum* pAlbum,
 	_pPlaylist=NULL;
 	_Position=pos;
 
-	_localPath=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+strlen(_title)+20);
-	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
+	_localDir=_pAlbum->_localDir;
+	_localPath=(char*)malloc(strlen(_localDir)+strlen(_title)+20);
 
+	/*
+	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
 	sprintf(_localDir,"%s/mp3/%s/%s",DOWNLOAD_ROOT_DIR,_szArtist,_szAlbum);
 	toolsCleanUTF8(_localDir);
+	 */
 
 	sprintf(_localPath,"%s/%s.mp3",_localDir,_title);
 	toolsCleanUTF8(_localPath);
@@ -67,15 +70,19 @@ peeTrack::peeTrack(const char* id, const char* title, int length, peePlaylist* p
 	_Position=pos;
 
 
-	_localPath=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+strlen(_title)+20);
-	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
+	/*
+	 _localDir=_pAlbum->_localDir;
+	_localPath=(char*)malloc(strlen(_localDir)+strlen(_title)+20);
+	 */
 
+	//_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
+	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
 	sprintf(_localDir,"%s/mp3/%s/%s",DOWNLOAD_ROOT_DIR,_szArtist,_szAlbum);
 	toolsCleanUTF8(_localDir);
 
+	_localPath=(char*)malloc(strlen(_localDir)+strlen(_title)+20);
 	sprintf(_localPath,"%s/%s.mp3",_localDir,_title);
 	toolsCleanUTF8(_localPath);
-
 
 }
 
@@ -87,7 +94,7 @@ void peeTrack::print() {
 	/*if(_pAlbum)
 		cout << "   " << _title << " " << _pAlbum->_albumName << "(" << _id << ")" <<  endl;*/
 
-			cout << "   " << _title << " " << _szAlbum << "(" << _id << ")" <<  endl;
+	cout << "   " << _title << " " << _szAlbum << "(" << _id << ")" <<  endl;
 }
 
 bool peeTrack::checkDownload(void)
@@ -113,3 +120,5 @@ bool peeTrack::checkDownload(void)
 
 	return downloaded;
 }
+
+

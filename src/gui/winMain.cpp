@@ -147,8 +147,9 @@ guiBase* guiBuild()
 
 int winLaunch()
 {
+	//guiLaunch();
+	//guiInit();
+	//guiSetMainWindows(guiBuild());
 	guiLaunch();
-	guiSetMainWindows(guiBuild());
-	//pthread_exit(NULL);
 	return 0;
 }

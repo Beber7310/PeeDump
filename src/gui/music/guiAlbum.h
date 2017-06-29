@@ -24,6 +24,7 @@ public:
 	peeAlbum* 	_pAlbum;
 	bool		_selected;
 	int 		_color;
+
 };
 
 #endif /* GUI_GUIALBUM_H_ */

@@ -282,7 +282,6 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			}
 		if(i<200 || i>307)
 			{
-			close(sock);
 			errorInt = i;	/* Status code, to be inserted in error string */
 			errorSource = FETCHER_ERROR;
 			http_errno = HF_STATUSCODE;

@@ -52,11 +52,13 @@ int main(int argc, char *argv[]) {
 
 	//toolsPrintAlbums(appContext.Albums);
 	//toolsPrintPlaylists(appContext.Playlist);
+	//toolsPrintPodcasts(appContext.Podcasts);
 
+	deezerLaunch(appContext.gToken);
 
 	winLaunch();
 
-	deezerLaunch(appContext.gToken);
+
 #ifdef	HOMECONTROL
 	homeControlLaunch();
 #endif

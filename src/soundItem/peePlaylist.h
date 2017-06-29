@@ -24,8 +24,16 @@ public:
 	char* _coverHtmplPath;
 	std::vector<peeTrack*>* _tracks;
 	int	  _currentTrack;
-
+	int _nbrTracksDownloaded;
 	void print();
+	int GetNbrTracksDownloaded();
+
+	void ComputeNbrTracksDownloaded();
+	void dumpPlaylist();
+	int GetNbrTracks();
+
+	int GetFirstTrack();
+	int GetNextTrack();
 };
 
 #endif /* SOUNDITEM_PEEPLAYLIST_H_ */

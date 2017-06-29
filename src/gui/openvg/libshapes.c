@@ -186,6 +186,11 @@ VGImage ovgCreateImageFromJpeg(const char *filename) {
 
 	// Create VG image
 	img = vgCreateImage(rgbaFormat, width, height, VG_IMAGE_QUALITY_BETTER);
+
+	if(!img)
+		printf("vgCreateImage error: %i\n",vgGetError());
+
+
 	vgImageSubData(img, data, dstride, rgbaFormat, 0, 0, width, height);
 
 	// Cleanup

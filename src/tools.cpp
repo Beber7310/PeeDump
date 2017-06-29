@@ -24,6 +24,7 @@
 #include "peeAlbum.h"
 #include "peePlaylist.h"
 #include "peeTrack.h"
+#include "peeAlbum.h"
 #include "deezer.h"
 #include "tools.h"
 #include "main.h"
@@ -195,9 +196,15 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
-	XMLNode* AlbumNode = xmlDoc.FirstChildElement( )->FirstChildElement( "data" )->FirstChildElement( "album");
 
 	vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
+
+	if(!xmlDoc.FirstChildElement( ))
+		return retAlbum;
+
+	XMLNode* AlbumNode = xmlDoc.FirstChildElement( )->FirstChildElement( "data" )->FirstChildElement( "album");
+
+
 
 	while(AlbumNode!=NULL)
 	{
@@ -207,10 +214,15 @@ vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
 		const char* coverHtmplPath;
 
 		id=AlbumNode->FirstChildElement("id")->FirstChild()->Value();
+		if(AlbumNode->FirstChildElement("album")>0)
+		{
+			id=AlbumNode->FirstChildElement("album")->FirstChildElement("id")->FirstChild()->Value();
+		}
+
 
 		artisteName=AlbumNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
 		albumName=AlbumNode->FirstChildElement("title")->FirstChild()->Value();
-		coverHtmplPath=AlbumNode->FirstChildElement("cover_big")->FirstChild()->Value();
+		coverHtmplPath=AlbumNode->FirstChildElement("cover_medium")->FirstChild()->Value();
 
 
 		retAlbum->push_back(new peeAlbum(id,artisteName,albumName,coverHtmplPath));
@@ -276,9 +288,15 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
 
+	vector<peePlaylist*>* retPlaylist =new std::vector<peePlaylist*>;
+
+	if(!
+			xmlDoc.FirstChildElement( "root" ))
+		return retPlaylist;
+
 	XMLNode* AlbumNode = xmlDoc.FirstChildElement( "root" )->FirstChildElement( "data" )->FirstChildElement( "playlist");
 
-	vector<peePlaylist*>* retPlaylist =new std::vector<peePlaylist*>;
+
 
 	while(AlbumNode!=NULL)
 	{
@@ -297,7 +315,6 @@ std::vector<peePlaylist*>* toolsGetUserPlaylists(uint32_t userId)
 
 	return retPlaylist;
 }
-
 
 vector<peeTrack*>* toolsGetUserPlaylistTracks(peePlaylist* pPlaylist)
 {
@@ -320,6 +337,8 @@ vector<peeTrack*>* toolsGetUserPlaylistTracks(peePlaylist* pPlaylist)
 	while(tracksNode!=NULL)
 	{
 		const char* id;
+		const char* albumid;
+		const char* albumCover;
 		const char* title;
 		const char* artist;
 		const char* album;
@@ -331,15 +350,21 @@ vector<peeTrack*>* toolsGetUserPlaylistTracks(peePlaylist* pPlaylist)
 		length=atoi(tracksNode->FirstChildElement("duration")->FirstChild()->Value());
 		//pos=atoi(tracksNode->FirstChildElement("track_position")->FirstChild()->Value());
 		artist=tracksNode->FirstChildElement("artist")->FirstChildElement("name")->FirstChild()->Value();
-		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
 
-		retAlbum->push_back(new peeTrack(id,title,length,pPlaylist,album,artist,pos));
+		album=tracksNode->FirstChildElement("album")->FirstChildElement("title")->FirstChild()->Value();
+		albumid=tracksNode->FirstChildElement("album")->FirstChildElement("id")->FirstChild()->Value();
+		albumCover=tracksNode->FirstChildElement("album")->FirstChildElement("cover_medium")->FirstChild()->Value();
+		peeTrack* pTrack=new peeTrack(id,title,length,pPlaylist,album,artist,pos);
+		peeAlbum* pAlbum=new peeAlbum(albumid,artist,album,albumCover);
+		pTrack->_pAlbum=pAlbum;
+		retAlbum->push_back(pTrack);
 
 		tracksNode=tracksNode->NextSibling();
 	}
 
 	return retAlbum;
 }
+
 
 void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodcast* pParent,char* htmlSource)
 {
@@ -353,6 +378,9 @@ void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodca
 	free(fileBuf);
 	XMLNode* podcastNode;
 	podcastNode = xmlDoc.FirstChildElement( "rss" );
+	if(!podcastNode)
+		return;
+
 	podcastNode = podcastNode->FirstChildElement( "channel" );
 
 	pParent->setTitle(podcastNode->FirstChildElement( "title")->FirstChild()->Value());
@@ -391,7 +419,6 @@ void toolsUpdateUserPodcastTracks(vector<peePodcastTrack*>* podcastList,peePodca
 				podcastList->push_back(new peePodcastTrack(pParent,&date,title,htmlMp3,size));
 			}
 		}
-
 		podcastNode=podcastNode->NextSibling();
 	}
 	return;
@@ -520,6 +547,17 @@ int toolsCleanUTF8(char* szString)
 
 	while(szString[strlen(szString)-1]==' ')
 		szString[strlen(szString)-1]=0;
+
+	dst=0;
+	for(unsigned int ii=0;ii<strlen(szString)-1;ii++)
+	{
+		if(szString[ii] ==' ' && szString[ii+1] == '/')
+		{
+				ii++;
+		}
+		szString[dst]=szString[ii];
+		dst++;
+	}
 
 	return 0;
 }

@@ -58,7 +58,6 @@ bool compare_podcast (const peePodcastTrack* first, const peePodcastTrack* secon
 	return ( mktime((tm*)(&first->_date)) > mktime((tm*)&second->_date) );
 }
 
-
 int toolsDownloadPodcast(peePodcastTrack* pPodcast)
 {
 	pthread_mutex_lock(&downloadMutex);
@@ -101,12 +100,7 @@ void* toolsDownloadPodcastThread(void * p)
 
 bool  toolsDownloadExist(char * localPath)
 {
-	char szPath[1024];
-
-	strcpy(szPath,DOWNLOAD_ROOT_DIR);
-	strcat(szPath,localPath);
-
-	if(access( szPath, F_OK ) != -1 )
+	if(access( localPath, F_OK ) != -1 )
 		return true;
 	return false;
 }
@@ -116,10 +110,8 @@ off_t toolsDownloadFileSize(const char *localPath) {
 
 	char szPath[1024];
 
-	strcpy(szPath,DOWNLOAD_ROOT_DIR);
-	strcat(szPath,localPath);
 
-	if (stat(szPath, &st) == 0)
+	if (stat(localPath, &st) == 0)
 		return st.st_size;
 
 	return 0;

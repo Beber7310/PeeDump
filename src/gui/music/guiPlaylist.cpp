@@ -29,6 +29,7 @@ guiPlaylist::~guiPlaylist() {
 
 void guiPlaylist::Render(void)
 {
+	char tmp[32];
 	_color++;
 	if(_color>232)
 		_color=232;
@@ -41,6 +42,9 @@ void guiPlaylist::Render(void)
 	if(_pPlaylist)
 	{
 		RenderText(_x+5,_y+5,_pPlaylist->_name,25);
+
+		sprintf(tmp,"(%i/%i)",_pPlaylist->_nbrTracksDownloaded,_pPlaylist->GetNbrTracks());
+					RenderText(_x+450,_y+60,tmp,20);
 	}
 
 }

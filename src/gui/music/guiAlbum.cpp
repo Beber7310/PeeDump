@@ -14,6 +14,7 @@ guiAlbum::guiAlbum() {
 	_pAlbum=NULL;
 	_selected=false;
 	_color=232;
+
 }
 
 guiAlbum::guiAlbum(peeAlbum* pAlbum) {
@@ -21,6 +22,8 @@ guiAlbum::guiAlbum(peeAlbum* pAlbum) {
 	_pAlbum=pAlbum;
 	_selected=false;
 	_color=232;
+
+
 }
 
 guiAlbum::~guiAlbum() {
@@ -29,6 +32,8 @@ guiAlbum::~guiAlbum() {
 
 void guiAlbum::Render(void)
 {
+	char tmp[32];
+
 	_color++;
 		if(_color>232)
 			_color=232;
@@ -41,6 +46,11 @@ void guiAlbum::Render(void)
 	{
 		RenderText(_x+5,_y+5,_pAlbum->_artisteName,25);
 		RenderText(_x+40,_y+50,_pAlbum->_albumName,20);
+
+			sprintf(tmp,"(%i/%i)",_pAlbum->_nbrTracksDownloaded,_pAlbum->GetNbrTracks());
+			RenderText(_x+450,_y+60,tmp,20);
+
+
 	}
 
 }
