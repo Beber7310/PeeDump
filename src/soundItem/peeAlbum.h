@@ -26,6 +26,9 @@ public:
 
 	int GetFirstTrack();
 	int GetNextTrack();
+	void dumpPlaylist();
+	int GetFirstMissingTrack();
+	int GetNextMissingTrack();
 
 	char* _artisteName;
 	char* _albumName;

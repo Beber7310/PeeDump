@@ -39,6 +39,9 @@ extern "C" {
 int deezerLaunch(char* token);
 int deezerPostCommand(uint32_t cmd,const void* arg,const char* name );
 const char* deezerGetSongName();
+bool deezerIsPlaying();
+bool deezerIsReady();
+
 #ifdef __cplusplus
 	}
 #endif

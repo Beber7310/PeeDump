@@ -29,5 +29,7 @@
 #endif
 
 
+//#define LOG_DEEZER_ENABLE
+
 
 #endif /* INC_CONFIGURATION_H_ */

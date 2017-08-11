@@ -11,11 +11,12 @@
 #include "peeAlbum.h"
 #include "peePlaylist.h"
 #include "peePodcast.h"
+#include "peeAlbum.h"
 #include "peeTrack.h"
 #include "main.h"
 
 
-
+using namespace std;
 
 void initTool(void);
 
@@ -23,6 +24,7 @@ uint32_t  toolsGetUser();
 void toolsGetToken(char* pToken);
 
 std::vector<peeAlbum*>* 		toolsGetUserAlbums(uint32_t userId);
+std::vector<peeAlbum*>* 		toolsGetUserAlbumsIndex(uint32_t userId,int index,vector<peeAlbum*>* retAlbum);
 std::vector<peeTrack*>* 		toolsGetUserAlbumTracks(peeAlbum* pAlbum);
 
 std::vector<peePlaylist*>* 		toolsGetUserPlaylists(uint32_t userId);
@@ -37,6 +39,6 @@ void toolsPrintPodcasts(std::vector<peePodcast*>* pPodcasts);
 int toolsGetNext(stAppContext* pContext);
 int toolsGetInput(stMouse* pMouse);
 int toolsCleanUTF8(char* szString);
-
+void toolsDownloaderTracks(vector<peeAlbum*>* pAlbum);
 
 #endif /* INC_TOOLS_H_ */

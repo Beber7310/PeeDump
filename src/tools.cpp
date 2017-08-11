@@ -185,19 +185,34 @@ char * toolsGetHtml(char *url)
  *
  *
  */
-vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId)
+
+vector<peeAlbum*>* 		toolsGetUserAlbums(uint32_t userId)
+{
+	vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
+
+	toolsGetUserAlbumsIndex(userId,0,retAlbum);
+	toolsGetUserAlbumsIndex(userId,25,retAlbum);
+	toolsGetUserAlbumsIndex(userId,50,retAlbum);
+	toolsGetUserAlbumsIndex(userId,75,retAlbum);
+	toolsGetUserAlbumsIndex(userId,100,retAlbum);
+	toolsGetUserAlbumsIndex(userId,125,retAlbum);
+
+	return retAlbum;
+}
+
+vector<peeAlbum*>* toolsGetUserAlbumsIndex(uint32_t userId,int index,vector<peeAlbum*>* retAlbum)
 {
 	XMLDocument xmlDoc;
 	char url [1024];
 	char *fileBuf;
 
-	sprintf(url,"http://api.deezer.com/user/%i/albums&output=xml",userId);
+	sprintf(url,"http://api.deezer.com/user/%i/albums&output=xml&index=%i",userId,index);
 	fileBuf = toolsGetHtml(url);
 
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
 
-	vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
+	//vector<peeAlbum*>* retAlbum =new std::vector<peeAlbum*>;
 
 	if(!xmlDoc.FirstChildElement( ))
 		return retAlbum;
@@ -245,11 +260,16 @@ vector<peeTrack*>* toolsGetUserAlbumTracks(peeAlbum* pAlbum)
 	sprintf(url,"http://api.deezer.com/album/%s&output=xml",pAlbum->_id);
 	fileBuf = toolsGetHtml(url);
 
+	vector<peeTrack*>* retAlbum =new std::vector<peeTrack*>;
+
 	xmlDoc.Parse( fileBuf, strlen(fileBuf));
 	free(fileBuf);
+
+	if(xmlDoc.FirstChildElement( )->FirstChildElement( "tracks" )==NULL)
+		return retAlbum;
+
 	XMLNode* tracksNode = xmlDoc.FirstChildElement( )->FirstChildElement( "tracks" )->FirstChildElement( "data")->FirstChildElement( "track") ;
 
-	vector<peeTrack*>* retAlbum =new std::vector<peeTrack*>;
 
 	while(tracksNode!=NULL)
 	{
@@ -506,7 +526,7 @@ int toolsCleanUTF8(char* szString)
 			{
 				szString[dst]='o';
 			}
-			else if((szString[i]==0xaf))
+			else if((szString[i]==0xaf)||(szString[i]==0xad))
 			{
 				szString[dst]='i';
 			}
@@ -516,8 +536,8 @@ int toolsCleanUTF8(char* szString)
 			}
 			else
 			{
-				i++;
-				//printf("Missed! 0x%x : %s\n",szString[i],szString);
+				szString[dst]=' ';
+				printf("Missed! 0x%x : %s\n",szString[i],szString);
 			}
 		}
 		else if((szString[i]&0xF0)==0xE0)
@@ -560,5 +580,29 @@ int toolsCleanUTF8(char* szString)
 	}
 
 	return 0;
+}
+
+
+void toolsDownloaderTracks(vector<peeAlbum*>* pAlbum)
+{
+	for (vector<peeAlbum*>::iterator it = pAlbum->begin(); it != pAlbum->end(); it++)
+	{
+		printf("Album:%s %s\n",(*it)->_artisteName,(*it)->_albumName);
+
+		(*it)->fetchTracks();
+		if((*it)->GetNbrTracksDownloaded()<(*it)->GetNbrTracks())
+		{
+			deezerPostCommand(DEEZER_CMD_LOAD_ALBUM,(*it),NULL);
+			do
+			{
+				sleep(1);
+			}while(deezerIsPlaying());
+		}
+		else
+		{
+			printf("   fully downloaded\n");
+			sleep(1);
+		}
+	}
 }
 

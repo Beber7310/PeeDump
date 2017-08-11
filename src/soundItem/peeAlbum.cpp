@@ -50,9 +50,9 @@ peeAlbum::peeAlbum(const char* id,const char* artisteName,const char* albumName,
 	strcpy(_artisteName,artisteName);
 	strcpy(_coverHtmplPath,coverHtmplPath);
 
-	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_artisteName)+strlen(_albumName)+20);
-	sprintf(_localDir,"%s/mp3/%s/%s",DOWNLOAD_ROOT_DIR,_artisteName,_albumName);
-	toolsCleanUTF8(_localDir);
+	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_id)+20);
+	sprintf(_localDir,"%s/mp3/alb_%s",DOWNLOAD_ROOT_DIR,_id);
+	//toolsCleanUTF8(_localDir);
 
 	_localPathCover=(char*)malloc(strlen(_localDir)+strlen("cover.jpeg")+20);
 	sprintf(_localPathCover,"%s/cover.jpeg",_localDir);
@@ -68,6 +68,7 @@ void peeAlbum::fetchTracks() {
 	{
 		_tracks=toolsGetUserAlbumTracks(this);
 		ComputeNbrTracksDownloaded();
+		dumpPlaylist();
 	}
 }
 
@@ -114,7 +115,7 @@ void peeAlbum::ComputeNbrTracksDownloaded(){
 			}
 			else
 			{
-				printf("Not downloaded: %s %s\n",(*it)->_szAlbum,(*it)->_szArtist);
+				printf("Not downloaded: %s %s %s\n",(*it)->_szArtist,(*it)->_szAlbum,(*it)->_title);
 			}
 		}
 	}
@@ -149,16 +150,73 @@ int peeAlbum::GetFirstTrack()
 
 }
 
-int peeAlbum::GetNextTrack()
+int peeAlbum::GetFirstMissingTrack()
 {
+	_currentTrack =0;
 	for(unsigned int ii=_currentTrack;ii<_tracks->size();ii++)
 	{
-		_currentTrack++;
+
 		if(!_tracks->at(ii)->checkDownload())
 		{
 			return _currentTrack;
 		}
+		_currentTrack++;
+	}
+	return _currentTrack;
+
+
+}
+
+int peeAlbum::GetNextMissingTrack()
+{
+	_currentTrack++;
+	for(unsigned int ii=_currentTrack;ii<_tracks->size();ii++)
+	{
+
+		if(!_tracks->at(_currentTrack)->checkDownload())
+		{
+			return _currentTrack;
+		}
+		_currentTrack++;
 	}
 	return _currentTrack;
 }
 
+
+int peeAlbum::GetNextTrack()
+{
+
+	for(unsigned int ii=_currentTrack;ii<_tracks->size();ii++)
+	{
+
+		if(!_tracks->at(ii)->checkDownload())
+		{
+			return _currentTrack;
+		}
+		_currentTrack++;
+	}
+	return _currentTrack;
+}
+
+void peeAlbum::dumpPlaylist()
+{
+	FILE *stream;
+	char szFineName[256];
+
+
+	sprintf(szFineName,"%s/album/%s_%s.m3u",DOWNLOAD_ROOT_DIR,_artisteName,_albumName);
+	toolsCleanUTF8(szFineName);
+	stream = fopen(szFineName, "w");
+	if (stream == NULL)
+	{
+		printf("Unable to open %s %i\n",szFineName,errno);
+		exit(EXIT_FAILURE);
+	}
+
+	for (vector<peeTrack*>::iterator it = _tracks ->begin(); it != _tracks->end(); it++)
+	{
+		fprintf(stream,"../%s\n",&(*it)->_localPath[strlen(DOWNLOAD_ROOT_DIR)]);
+	}
+
+	fclose(stream);
+}

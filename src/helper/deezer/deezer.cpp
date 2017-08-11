@@ -53,6 +53,7 @@ static char	szLoading[]="Loading...";
 typedef struct {
 	int                   nb_track_played;
 	bool                  is_playing;
+	bool                  is_ready;
 	char*                 sz_content_url;
 	int                   activation_count;
 	dz_connect_handle     dzconnect;
@@ -157,6 +158,7 @@ void* mainDeezer(void* voidtoken) {
 	app_change_content("dzmedia:///album/607845");
 
 	app_ctxt->dzconnect = dz_connect_new(&config);
+	app_ctxt->is_ready=false;
 
 	if (app_ctxt->dzconnect == NULL) {
 		log("dzconnect null\n");
@@ -301,6 +303,7 @@ void app_connect_onevent_cb(dz_connect_handle handle,
 
 		case DZ_CONNECT_EVENT_USER_LOGIN_OK:
 			log("(App:%p) ++++ CONNECT_EVENT ++++ USER_LOGIN_OK\n",context);
+			app_ctxt->is_ready=true;
 			//app_load_content();
 			break;
 
@@ -367,7 +370,9 @@ static void app_play_afterload_album(
 		dz_error_t status,
 		dz_object_handle result)
 {
+#ifdef LOG_DEEZER_ENABLE
 	log("PLAY ALBUM TRACK\n");
+#endif
 	//dz_player_stop(app_ctxt->dzplayer, NULL, NULL);
 	dz_player_play(app_ctxt->dzplayer, NULL, NULL,DZ_PLAYER_PLAY_CMD_START_TRACKLIST,DZ_INDEX_IN_QUEUELIST_CURRENT);
 }
@@ -407,8 +412,10 @@ static void app_load_album(peeAlbum* pAlbum) {
 	app_ctxt->pAlbum=pAlbum;
 	app_ctxt->pPlaylist=NULL;
 
-	sprintf(szTemp,"dzmedia:///track/%s",pAlbum->_tracks->at(pAlbum->_currentTrack)->_id);
+	sprintf(szTemp,"dzmedia:///track/%s",pAlbum->_tracks->at(pAlbum->GetFirstMissingTrack())->_id);
+#ifdef 	LOG_DEEZER_ENABLE
 	log("LOAD ALBUM TRACKS=> %s\n", szTemp);
+#endif
 	dz_player_load(app_ctxt->dzplayer,&app_play_afterload_album,NULL,szTemp);
 }
 
@@ -431,12 +438,16 @@ static void app_load_playlist(peePlaylist* pPlaylist) {
 static void app_load_album_next() {
 	char szTemp[512];
 
-	app_ctxt->pAlbum->_currentTrack++;
+	app_ctxt->pAlbum->GetNextMissingTrack();
 	if(app_ctxt->pAlbum->_currentTrack<app_ctxt->pAlbum->_tracks->size())
 	{
 		sprintf(szTemp,"dzmedia:///track/%s",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_id);
 		log("LOAD ALBUM TRACKS=> %s\n", szTemp);
 		dz_player_load(app_ctxt->dzplayer,&app_play_afterload_album,NULL,szTemp);
+	}
+	else
+	{
+		app_ctxt->is_playing=false;
 	}
 }
 
@@ -450,6 +461,10 @@ static void app_load_playlist_next() {
 		log("LOAD PLAYLIST TRACKS=> %s\n", szTemp);
 		dz_player_load(app_ctxt->dzplayer,&app_play_afterload_playlist,NULL,szTemp);
 	}
+	else
+		{
+			app_ctxt->is_playing=false;
+		}
 }
 
 static void app_playback_start_or_stop() {
@@ -603,7 +618,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_LOADED:
+#ifdef LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_LOADED for idx: %d\n", context, idx);
+#endif
 			app_playback_start();
 			break;
 
@@ -624,7 +641,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_NEED_NATURAL_NEXT:
+#ifdef LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== QUEUELIST_NEED_NATURAL_NEXT for idx: %d\n", context, idx);
+#endif
 			break;
 
 		case DZ_PLAYER_EVENT_QUEUELIST_TRACK_NOT_AVAILABLE_OFFLINE:
@@ -671,7 +690,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 		break;
 
 		case DZ_PLAYER_EVENT_MEDIASTREAM_DATA_READY:
+#ifdef 	LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== MEDIASTREAM_DATA_READY for idx: %d\n", context, idx);
+#endif
 			break;
 
 		case DZ_PLAYER_EVENT_MEDIASTREAM_DATA_READY_AFTER_SEEK:
@@ -679,7 +700,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START_FAILURE:
+
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START_FAILURE for idx: %d\n", context, idx);
+
 			app_ctxt->is_playing = false;
 			system("killall -q parec lame");
 
@@ -697,7 +720,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_START:
+#ifdef 	LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START for idx: %d\n", context, idx);
+#endif
 			app_ctxt->is_playing = true;
 			if(app_ctxt->is_playing_album)
 			{
@@ -715,7 +740,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_END:
+#ifdef LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_END for idx: %d\n", context, idx);
+#endif
 			app_ctxt->is_playing = false;
 			log("- nb_track_played : %d\n",app_ctxt->nb_track_played);
 
@@ -788,7 +815,9 @@ void app_player_onevent_cb( dz_player_handle       handle,
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_REMOVED:
+#ifdef 	LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_REMOVED for idx: %d\n", context, idx);
+#endif
 			app_ctxt->is_playing = false;
 			system("killall -q parec lame");
 			break;
@@ -1037,3 +1066,26 @@ const char* deezerGetSongName()
 	return szCurrentSong;
 }
 
+bool deezerIsPlaying()
+{
+	if(app_ctxt->is_playing_album)
+	{
+		if(app_ctxt->pAlbum->_currentTrack<app_ctxt->pAlbum->GetNbrTracks())
+			return true;
+	}
+	if(app_ctxt->is_playing_playlist)
+	{
+		if(app_ctxt->pPlaylist->_currentTrack<app_ctxt->pPlaylist->GetNbrTracks())
+			return true;
+	}
+	return  false;
+}
+
+
+bool deezerIsReady()
+{
+	if(app_ctxt==NULL)
+		return false;
+
+	return app_ctxt->is_ready;
+}

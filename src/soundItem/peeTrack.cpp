@@ -39,7 +39,7 @@ peeTrack::peeTrack(const char* id,const char* title,int length,peeAlbum* pAlbum,
 	_Position=pos;
 
 	_localDir=_pAlbum->_localDir;
-	_localPath=(char*)malloc(strlen(_localDir)+strlen(_title)+20);
+	_localPath=(char*)malloc(strlen(_localDir)+strlen(_id)+20);
 
 	/*
 	_localDir=(char*)malloc(strlen(DOWNLOAD_ROOT_DIR)+strlen(_szArtist)+strlen(_szAlbum)+20);
@@ -47,8 +47,8 @@ peeTrack::peeTrack(const char* id,const char* title,int length,peeAlbum* pAlbum,
 	toolsCleanUTF8(_localDir);
 	 */
 
-	sprintf(_localPath,"%s/%s.mp3",_localDir,_title);
-	toolsCleanUTF8(_localPath);
+	sprintf(_localPath,"%s/%s.mp3",_localDir,_id);
+	//toolsCleanUTF8(_localPath);
 
 }
 
@@ -70,6 +70,7 @@ peeTrack::peeTrack(const char* id, const char* title, int length, peePlaylist* p
 	_Position=pos;
 
 
+	printf("Need to be updated to match play list!!!!!");
 	/*
 	 _localDir=_pAlbum->_localDir;
 	_localPath=(char*)malloc(strlen(_localDir)+strlen(_title)+20);
@@ -104,7 +105,7 @@ bool peeTrack::checkDownload(void)
 	if(toolsDownloadExist( _localPath))
 	{
 		int realSize=toolsDownloadFileSize(_localPath);
-		if(realSize<1024*1024*1)
+		if(realSize<512*1024)
 		{
 			downloaded=false;
 		}
