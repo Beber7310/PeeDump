@@ -21,6 +21,7 @@ using namespace std;
 void initTool(void);
 
 uint32_t  toolsGetUser();
+void cleanMP3String(char* str);
 void toolsGetToken(char* pToken);
 
 std::vector<peeAlbum*>* 		toolsGetUserAlbums(uint32_t userId);
@@ -40,5 +41,6 @@ int toolsGetNext(stAppContext* pContext);
 int toolsGetInput(stMouse* pMouse);
 int toolsCleanUTF8(char* szString);
 void toolsDownloaderTracks(vector<peeAlbum*>* pAlbum);
+void toolsDownloaderPlaylist(vector<peePlaylist*>* pPlaylist);
 
 #endif /* INC_TOOLS_H_ */

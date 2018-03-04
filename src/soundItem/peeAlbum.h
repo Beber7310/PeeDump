@@ -37,12 +37,15 @@ public:
 	int	  _currentTrack;
 	char* _localDir;
 	char* _localPathCover;
+	char* _genre;
 
 	std::vector<peeTrack*>* _tracks;
 
 	void fetchTracks();
 	void print();
 	void downloadPicture();
+	void dumpInfo();
+	void setGenre(const char* szGenre);
 };
 
 #endif /* SOUNDITEM_PEEALBUM_H_ */

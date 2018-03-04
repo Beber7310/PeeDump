@@ -19,6 +19,7 @@ public:
 	virtual ~peePlaylist();
 	peePlaylist(const char*  id,const char* name,const char* coverHtmplPath);
 	void fetchTracks();
+	void downloadPicture();
 
 	char* _name;
 	char* _coverHtmplPath;
@@ -34,6 +35,11 @@ public:
 
 	int GetFirstTrack();
 	int GetNextTrack();
+
+	char* _localDir;
+	char* _localPathCover;
+
+
 };
 
 #endif /* SOUNDITEM_PEEPLAYLIST_H_ */

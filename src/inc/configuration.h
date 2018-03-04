@@ -16,7 +16,7 @@
 #ifdef BOOMBOOM_SALON
 	#define SCREEN_7P
 	#define HOMECONTROL
-	#define DOWNLOAD_ROOT_DIR "/mnt/usbdrive/"
+	#define DOWNLOAD_ROOT_DIR "/mnt/hdd/"
 	//#define DOWNLOAD_ROOT_DIR "/home/pi/projects/audio/"
 	#define DEEZER
 #elif defined(BOOMBOOM_DAPHNEE)

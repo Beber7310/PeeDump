@@ -14,6 +14,7 @@
 #include "deezer.h"
 #include "configuration.h"
 #include "peeAlbum.h"
+#include "tools.h"
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -74,8 +75,8 @@ static int print_device_id  = true;
 static app_context_handle app_ctxt = NULL;
 
 
-#define YOUR_APPLICATION_ID      "180202"     // SET YOUR APPLICATION ID
-#define YOUR_APPLICATION_NAME    "NanoPlayer" // SET YOUR APPLICATION NAME
+#define YOUR_APPLICATION_ID      "227402"     // SET YOUR APPLICATION ID
+#define YOUR_APPLICATION_NAME    "BoomBoomBox" // SET YOUR APPLICATION NAME
 #define YOUR_APPLICATION_VERSION "00001"      // SET YOUR APPLICATION VERSION
 #define USER_CACHE_PATH          "/var/tmp/dzrcache_NDK_SAMPLE" // SET THE USER CACHE PATH, This pasth must already exist
 
@@ -829,6 +830,10 @@ void app_player_onevent_cb( dz_player_handle       handle,
 	}
 }
 
+
+
+
+
 void* mainRecord(void* voidtoken) {
 
 	char szCmd[512];
@@ -855,6 +860,10 @@ void* mainRecord(void* voidtoken) {
 			sprintf(szArtist,"%s",app_ctxt->pAlbum->_artisteName);
 			sprintf(szTilte,"%s",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_title);
 			sprintf(szCoverPath,"%s",app_ctxt->pAlbum->_localPathCover);
+
+			cleanMP3String(szAlbum);
+			cleanMP3String(szArtist);
+			cleanMP3String(szTilte);
 		}
 		if(app_ctxt->is_playing_playlist)
 		{
@@ -862,8 +871,13 @@ void* mainRecord(void* voidtoken) {
 			sprintf(szArtist,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_szArtist);
 			sprintf(szTilte,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_title);
 			sprintf(szCoverPath,"%s",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_pAlbum->_localPathCover);
+
+			cleanMP3String(szAlbum);
+			cleanMP3String(szArtist);
+			cleanMP3String(szTilte);
 		}
-		sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet --ti \"%s\" -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
+		//sprintf(szCmd,"parec --format=s16le -d record-n-play.monitor |   lame -r --quiet --ti \"%s\" -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
+		sprintf(szCmd,"parec --format=s16le   |   lame -r --quiet --ti \"%s\" -q 3 --lowpass 17 --abr 192 - \"temp.mp3\" "
 				"--tt \"%s\" "
 				"--ta \"%s\" "
 				"--tl \"%s\" ",

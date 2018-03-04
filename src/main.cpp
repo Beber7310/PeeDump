@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 
 	system("pactl unload-module module-combine-sink");
 	system("pulseaudio -D");
-	system("pactl load-module module-combine-sink   sink_name=record-n-play slaves=alsa_output.platform-soc_sound.analog-stereo");
+	//system("pactl load-module module-combine-sink   sink_name=record-n-play slaves=alsa_output.platform-soc_sound.analog-stereo");
 
 	toolsDownloadInit();
 	system("mpc update");
@@ -47,7 +47,14 @@ int main(int argc, char *argv[]) {
 	{
 		sleep(1);
 	}
+
 	toolsDownloaderTracks(appContext.Albums);
+
+	toolsDownloaderPlaylist(appContext.Playlist);
+
+
+
+	system("mpc update");
 	printf("\n          Deezer download done!\n");
 	//while(!toolsGetNext(&appContext));
 
