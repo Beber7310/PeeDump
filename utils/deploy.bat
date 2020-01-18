@@ -17,14 +17,17 @@ IF "%2"=="" (
 
  
 
-SET PUTTYSCP_BIN="C:\Program Files (x86)\WinSCP\pscp.exe"
+
+SET PUTTYSCP_BIN="C:\Program Files\PuTTY\pscp.exe"
 SET PUTTY_BIN="C:\Program Files (x86)\WinSCP\putty.exe"
 
-SET RASPBERRYPI_ADDR=Peezer
-rem SET RASPBERRYPI_ADDR=BoomB
+rem SET RASPBERRYPI_ADDR=BoomD-1
+SET RASPBERRYPI_ADDR=192.168.1.39
 rem SET RASPBERRYPI_ADDR=BoomM
+rem SET RASPBERRYPI_ADDR=BoomD
 SET USERNAME=pi
 
+rem SET PASSWORD=Savoie73
 SET PASSWORD=raspberry
 SET CMD_FILENAME=commands.sh
 

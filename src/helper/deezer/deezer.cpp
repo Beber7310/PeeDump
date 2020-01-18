@@ -16,6 +16,8 @@
 #include "peeAlbum.h"
 #include "tools.h"
 
+#define LOG_DEEZER_ENABLE
+
 #ifdef _WIN32
 #include <Windows.h>
 static __inline int sleep(int s) {
@@ -75,7 +77,7 @@ static int print_device_id  = true;
 static app_context_handle app_ctxt = NULL;
 
 
-#define YOUR_APPLICATION_ID      "227402"     // SET YOUR APPLICATION ID
+#define YOUR_APPLICATION_ID      "302584"             //"227402"     // SET YOUR APPLICATION ID
 #define YOUR_APPLICATION_NAME    "BoomBoomBox" // SET YOUR APPLICATION NAME
 #define YOUR_APPLICATION_VERSION "00001"      // SET YOUR APPLICATION VERSION
 #define USER_CACHE_PATH          "/var/tmp/dzrcache_NDK_SAMPLE" // SET THE USER CACHE PATH, This pasth must already exist

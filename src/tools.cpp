@@ -51,35 +51,21 @@ void cleanMP3String(char* str)
 
 uint32_t toolsGetUser() {
 	uint32_t idUser = 0;
-/*
-	FILE *stream;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
 
-	stream = fopen("/home/pi/projects/data.conf", "r");
-	if (stream == NULL) {
-		printf("Unable to open /home/pi/projects/data.conf\n");
-		exit(EXIT_FAILURE);
-	}
-	while ((read = getline(&line, &len, stream)) != -1) {
-		//printf("Retrieved line of length %zu :\n", read);
-		//printf("%s", line);
-		if (strncmp("user:", line, strlen("user:")) == 0) {
-			idUser = atoi(&line[strlen("user:")]);
-		}
-	}
+	// return 92847721; //Bertrand
+	// return 2611892242ul; //Victor
+	return 2607063582; // Daphnée
+	// return 3060697284; // Barnabé
+}
 
-	free(line);
-	fclose(stream);
 
-	printf("User:  %i\n", idUser);
+void toolsGetToken(char* pToken) {
 
-	// 92847721
-	return idUser;
-	*/
-	return 92847721;
-
+	//pToken = strcpy(pToken, "frxQg2WGFPHlnTxC9dRj9tWnls4Ik53PlxxrTlqEnKMPDeCbvh");//Bertrand
+	pToken = strcpy(pToken, "frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4");//Victor
+	//pToken = strcpy(pToken, "fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi");//Daphnée
+	//pToken = strcpy(pToken, "frmNr8YaJXRToOMHlgtteClyMVyaX7DWExPBwT4LEf1821gnbg");//Barnabé
+	return;
 }
 
 std::vector<peePodcast*>* toolsGetPodcast(void) {
@@ -117,40 +103,6 @@ std::vector<peePodcast*>* toolsGetPodcast(void) {
 
 }
 
-void toolsGetToken(char* pToken) {
-/*
-	FILE *stream;
-	char *line = NULL;
-	size_t len = 0;
-	ssize_t read;
-
-	stream = fopen("/home/pi/projects/data.conf", "r");
-	if (stream == NULL) {
-		printf("Unable to open /home/pi/projects/data.conf\n");
-		exit(EXIT_FAILURE);
-	}
-
-	while ((read = getline(&line, &len, stream)) != -1) {
-		//printf("Retrieved line of length %zu :\n", read);
-		//printf("%s", line);
-		if (strncmp("token:", line, strlen("user:")) == 0) {
-			//idUser=atoi(&line[strlen("user:")]);
-			pToken = strcpy(pToken, &line[strlen("token:")]);
-		}
-	}
-	pToken[strlen(pToken) - 1] = 0;		// remove last char as it is a \n
-
-	free(line);
-	fclose(stream);
-
-	printf("Token: <%s>\n", pToken);
-
-	return;
-	*/
-
-	pToken = strcpy(pToken, "frxQg2WGFPHlnTxC9dRj9tWnls4Ik53PlxxrTlqEnKMPDeCbvh");
-	return;
-}
 
 /*
  *
@@ -194,6 +146,8 @@ char * toolsGetHtml(char *url) {
 vector<peeAlbum*>* toolsGetUserAlbums(uint32_t userId) {
 	vector<peeAlbum*>* retAlbum = new std::vector<peeAlbum*>;
 
+	printf("user id %u\n",userId);
+
 	toolsGetUserAlbumsIndex(userId, 0, retAlbum);
 	toolsGetUserAlbumsIndex(userId, 25, retAlbum);
 	toolsGetUserAlbumsIndex(userId, 50, retAlbum);
@@ -210,7 +164,7 @@ vector<peeAlbum*>* toolsGetUserAlbumsIndex(uint32_t userId, int index, vector<pe
 	char url[1024];
 	char *fileBuf;
 
-	sprintf(url, "http://api.deezer.com/user/%i/albums&output=xml&index=%i", userId, index);
+	sprintf(url, "http://api.deezer.com/user/%u/albums&output=xml&index=%i", userId, index);
 	fileBuf = toolsGetHtml(url);
 
 	xmlDoc.Parse(fileBuf, strlen(fileBuf));
@@ -304,7 +258,7 @@ std::vector<peePlaylist*>* toolsGetUserPlaylistsIndex(uint32_t userId, int index
 	char url[1024];
 	char *fileBuf;
 
-	sprintf(url, "http://api.deezer.com/user/%i/playlists&output=xml&index=%i", userId, index);
+	sprintf(url, "http://api.deezer.com/user/%u/playlists&output=xml&index=%i", userId, index);
 	fileBuf = toolsGetHtml(url);
 
 	xmlDoc.Parse(fileBuf, strlen(fileBuf));

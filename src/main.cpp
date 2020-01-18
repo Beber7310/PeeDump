@@ -42,6 +42,11 @@ int main(int argc, char *argv[]) {
 	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
 	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
 
+	/*
+		appContext.Albums=toolsGetUserAlbums(2611892242ul);
+		appContext.Playlist=toolsGetUserPlaylists(2611892242ul);
+	 */
+
 	deezerLaunch(appContext.gToken);
 	while(!deezerIsReady())
 	{
