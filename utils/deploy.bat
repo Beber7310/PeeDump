@@ -22,13 +22,13 @@ SET PUTTYSCP_BIN="C:\Program Files\PuTTY\pscp.exe"
 SET PUTTY_BIN="C:\Program Files (x86)\WinSCP\putty.exe"
 
 rem SET RASPBERRYPI_ADDR=BoomD-1
-SET RASPBERRYPI_ADDR=192.168.1.39
+SET RASPBERRYPI_ADDR=BoomV
 rem SET RASPBERRYPI_ADDR=BoomM
 rem SET RASPBERRYPI_ADDR=BoomD
 SET USERNAME=pi
 
-rem SET PASSWORD=Savoie73
-SET PASSWORD=raspberry
+SET PASSWORD=Savoie73
+rem SET PASSWORD=raspberry
 SET CMD_FILENAME=commands.sh
 
 rem Upload the file to raspberry pi

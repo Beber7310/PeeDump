@@ -53,8 +53,8 @@ uint32_t toolsGetUser() {
 	uint32_t idUser = 0;
 
 	// return 92847721; //Bertrand
-	// return 2611892242ul; //Victor
-	return 2607063582; // Daphnée
+	return 2611892242ul; //Victor
+	// return 2607063582; // Daphnée
 	// return 3060697284; // Barnabé
 }
 
@@ -62,8 +62,8 @@ uint32_t toolsGetUser() {
 void toolsGetToken(char* pToken) {
 
 	//pToken = strcpy(pToken, "frxQg2WGFPHlnTxC9dRj9tWnls4Ik53PlxxrTlqEnKMPDeCbvh");//Bertrand
-	pToken = strcpy(pToken, "frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4");//Victor
-	//pToken = strcpy(pToken, "fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi");//Daphnée
+	pToken = strcpy(pToken, "frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4");//Victor fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi
+	//pToken = strcpy(pToken, "fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi");//Daphnée frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4
 	//pToken = strcpy(pToken, "frmNr8YaJXRToOMHlgtteClyMVyaX7DWExPBwT4LEf1821gnbg");//Barnabé
 	return;
 }

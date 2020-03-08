@@ -87,7 +87,7 @@ bool peeTrack::checkDownload(void)
 	if(toolsDownloadExist( _localPath))
 	{
 		int realSize=toolsDownloadFileSize(_localPath);
-		if(realSize<512*1024)
+		if(realSize<128*1024)
 		{
 			printf("<checkDownload> File too small %s %i\n",_localPath,realSize);
 			downloaded=false;
