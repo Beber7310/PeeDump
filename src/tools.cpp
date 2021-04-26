@@ -53,18 +53,20 @@ uint32_t toolsGetUser() {
 	uint32_t idUser = 0;
 
 	// return 92847721; //Bertrand
-	return 2611892242ul; //Victor
+	// return 2611892242ul; //Victor
 	// return 2607063582; // Daphnée
 	// return 3060697284; // Barnabé
+	return 4288241922ul;
 }
 
 
 void toolsGetToken(char* pToken) {
 
-	//pToken = strcpy(pToken, "frxQg2WGFPHlnTxC9dRj9tWnls4Ik53PlxxrTlqEnKMPDeCbvh");//Bertrand
-	pToken = strcpy(pToken, "frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4");//Victor fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi
-	//pToken = strcpy(pToken, "fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi");//Daphnée frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4
-	//pToken = strcpy(pToken, "frmNr8YaJXRToOMHlgtteClyMVyaX7DWExPBwT4LEf1821gnbg");//Barnabé
+	// pToken = strcpy(pToken, "frxQg2WGFPHlnTxC9dRj9tWnls4Ik53PlxxrTlqEnKMPDeCbvh");//Bertrand
+	// pToken = strcpy(pToken, "frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4");//Victor fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi
+	// pToken = strcpy(pToken, "fro0Lr2bRLO4exEMtvmSfNTQcou1jQdNKX9rwTYF02dAhdTTmi");//Daphnée frICC5hssXh2fnzZG8yyQABCxiC3cbmQQHGpA4YsrAWTQsZ0R4
+	// pToken = strcpy(pToken, "frmNr8YaJXRToOMHlgtteClyMVyaX7DWExPBwT4LEf1821gnbg");//Barnabé
+	pToken = strcpy(pToken, "fr56lYR57e6FcIwyz2ouZP0Rr33Hmz8jvBfqAIsIFBQutNGgDH"); //pi
 	return;
 }
 

@@ -5,7 +5,6 @@
  *      Author: Bertrand
  */
 
-
 #include <stdio.h>
 #include <stdint.h>
 #include <list>
@@ -19,11 +18,12 @@
 #include "deezer.h"
 #include "main.h"
 #include "downloader.h"
+#include "peeAlbum.h"
+#include "peePlaylist.h"
 
 #include "configuration.h"
 
 stAppContext appContext;
-
 
 int main(int argc, char *argv[]) {
 
@@ -35,36 +35,48 @@ int main(int argc, char *argv[]) {
 	system("mpc update");
 
 	// First of all we retrieve user id and token
-	appContext.gUser=toolsGetUser();
+	appContext.gUser = toolsGetUser();
 	toolsGetToken(appContext.gToken);
 
 	// fetch album list
-	appContext.Albums=toolsGetUserAlbums(appContext.gUser);
-	appContext.Playlist=toolsGetUserPlaylists(appContext.gUser);
+	appContext.Albums = toolsGetUserAlbums(appContext.gUser);
+	appContext.Playlist = toolsGetUserPlaylists(appContext.gUser);
 
 	/*
-		appContext.Albums=toolsGetUserAlbums(2611892242ul);
-		appContext.Playlist=toolsGetUserPlaylists(2611892242ul);
+	 appContext.Albums=toolsGetUserAlbums(2611892242ul);
+	 appContext.Playlist=toolsGetUserPlaylists(2611892242ul);
 	 */
 
 	deezerLaunch(appContext.gToken);
-	while(!deezerIsReady())
-	{
+	while (!deezerIsReady()) {
 		sleep(1);
 	}
 
-	toolsDownloaderTracks(appContext.Albums);
+	while(1)
+	{
+		// fetch album list
+		appContext.Albums = toolsGetUserAlbums(appContext.gUser);
+		appContext.Playlist = toolsGetUserPlaylists(appContext.gUser);
 
-	toolsDownloaderPlaylist(appContext.Playlist);
+		toolsDownloaderTracks(appContext.Albums);
+		toolsDownloaderPlaylist(appContext.Playlist);
 
+		while(appContext.Albums->size()) {
+			delete (appContext.Albums->back());
+			appContext.Albums->pop_back();
+		}
+		appContext.Albums->clear();
 
+		while(appContext.Playlist->size()) {
+			delete (appContext.Playlist->back());
+			appContext.Playlist->pop_back();
+		}
+		appContext.Playlist->clear();
 
-	system("mpc update");
-	printf("\n          Deezer download done!\n");
-	//while(!toolsGetNext(&appContext));
+		system("mpc update");
+		printf("\n          Deezer download done! restart in 30s\n");
 
-
+		sleep(30);
+	}
 }
-
-
 

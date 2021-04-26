@@ -19,20 +19,18 @@ IF "%2"=="" (
 
 
 SET PUTTYSCP_BIN="C:\Program Files\PuTTY\pscp.exe"
-SET PUTTY_BIN="C:\Program Files (x86)\WinSCP\putty.exe"
+SET PUTTY_BIN="C:\Program Files\PuTTY\putty.exe"
 
-rem SET RASPBERRYPI_ADDR=BoomD-1
-SET RASPBERRYPI_ADDR=BoomV
-rem SET RASPBERRYPI_ADDR=BoomM
-rem SET RASPBERRYPI_ADDR=BoomD
+
+SET RASPBERRYPI_ADDR=pidump4
+
 SET USERNAME=pi
+SET PASSWORD=raspberry 
 
-SET PASSWORD=Savoie73
-rem SET PASSWORD=raspberry
 SET CMD_FILENAME=commands.sh
 
 rem Upload the file to raspberry pi
-%PUTTYSCP_BIN% -pw %PASSWORD% "%1" %USERNAME%@%RASPBERRYPI_ADDR%:"%2"
+%PUTTYSCP_BIN% -scp -P 22 -pw %PASSWORD% "%1" %USERNAME%@%RASPBERRYPI_ADDR%:"%2"
 
 rem Build a list of actions to do on the pi (chmod, execute GDB server)
 rem if exist %~dp0%CMD_FILENAME% del %~dp0%CMD_FILENAME%
@@ -41,7 +39,7 @@ rem echo chmod +x "%2" >> %~dp0%CMD_FILENAME%
 rem echo gdbserver :3785 "%2" >> %~dp0%CMD_FILENAME%
 
 rem Execute the action list on the raspberry pi
-rem %PUTTY_BIN% -pw %PASSWORD% -m %~dp0%CMD_FILENAME% %USERNAME%@%RASPBERRYPI_ADDR%
+rem %PUTTY_BIN% -pw %PASSWORD% -m %~dp0%CMD_FILENAME% %USERNAME%@%RASPBERRYPI_ADDR% -p 22
  
 rem exit /b %ERRORLEVEL%
 

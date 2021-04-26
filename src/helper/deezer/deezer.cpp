@@ -67,10 +67,11 @@ typedef struct {
 	bool                  is_playing_playlist;
 	peeAlbum*			  pAlbum;
 	peePlaylist*		  pPlaylist;
+	bool                  is_underflow;
 } app_context;
 
-typedef app_context *app_context_handle;
 
+typedef app_context *app_context_handle;
 static int print_version    = true;
 static int is_shutting_down = false;
 static int print_device_id  = true;
@@ -726,6 +727,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 #ifdef 	LOG_DEEZER_ENABLE
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_START for idx: %d\n", context, idx);
 #endif
+			app_ctxt->is_underflow=false;
 			app_ctxt->is_playing = true;
 			if(app_ctxt->is_playing_album)
 			{
@@ -764,13 +766,15 @@ void app_player_onevent_cb( dz_player_handle       handle,
 				printf("%s\n",szcmd);
 				system(szcmd);
 
-				if(!app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->checkDownload())
+				if(app_ctxt->is_underflow==false)
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_localPath);
-					printf("%s\n",szcmd);
-					system(szcmd);
+					if(!app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->checkDownload())
+					{
+						sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pAlbum->_tracks->at(app_ctxt->pAlbum->_currentTrack)->_localPath);
+						printf("%s\n",szcmd);
+						system(szcmd);
+					}
 				}
-
 				app_load_album_next();
 			}
 
@@ -785,12 +789,14 @@ void app_player_onevent_cb( dz_player_handle       handle,
 				sprintf(szcmd,"mkdir -p \"%s\"",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_localDir);
 				printf("%s\n",szcmd);
 				system(szcmd);
-
-				if(!app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->checkDownload())
+				if(app_ctxt->is_underflow==false)
 				{
-					sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_localPath);
-					printf("%s\n",szcmd);
-					system(szcmd);
+					if(!app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->checkDownload())
+					{
+						sprintf(szcmd,"mv temp.mp3 \"%s\"",app_ctxt->pPlaylist->_tracks->at(app_ctxt->pPlaylist->_currentTrack)->_localPath);
+						printf("%s\n",szcmd);
+						system(szcmd);
+					}
 				}
 				app_load_playlist_next();
 			}
@@ -805,6 +811,7 @@ void app_player_onevent_cb( dz_player_handle       handle,
 		case DZ_PLAYER_EVENT_RENDER_TRACK_UNDERFLOW:
 			log("(App:%p) ==== PLAYER_EVENT ==== RENDER_TRACK_UNDERFLOW for idx: %d\n", context, idx);
 			app_ctxt->is_playing = false;
+			app_ctxt->is_underflow=true;
 			break;
 
 		case DZ_PLAYER_EVENT_RENDER_TRACK_RESUMED:

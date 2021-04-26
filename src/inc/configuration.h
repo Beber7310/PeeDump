@@ -28,8 +28,8 @@
 	#define DEEZER
 #endif
 
-#define DOWNLOAD_ROOT_DIR "/home/pi/projects/audio/"
-
+//#define DOWNLOAD_ROOT_DIR "/home/pi/projects/audio/"
+#define DOWNLOAD_ROOT_DIR "/mnt/Music/"
 //#define LOG_DEEZER_ENABLE
 
 

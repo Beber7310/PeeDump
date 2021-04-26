@@ -1,0 +1,88 @@
+sudo apt-get update
+sudo apt-get upgrade
+
+git clone https://github.com/goodtft/LCD-show.git
+cd LCD-show
+sudo ./LCD5-show
+
+in config.txt==> display_rotate=1
+ 
+
+-- .bashrc --
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/home/pi/pidump/
+
+ps aux|grep PeeDump|grep -v grep
+
+if [ $? -eq 0 ]; then
+    echo PeeDump already running
+else
+    echo PeeDumpp not detected   
+    cd /home/pi/pidump
+   	/home/pi/pidump/PeeDump
+fi
+
+
+
+-- sdl --
+cd
+wget https://www.libsdl.org/release/SDL2-2.0.7.tar.gz
+wget https://www.libsdl.org/release/SDL2-2.0.14.tar.gz
+tar zxvf SDL2-2.0.7.tar.gz SDL2-2.0.7/
+cd SDL2-2.0.7/
+mkdir build && cd build
+../configure --host=armv7l-raspberry-linux-gnueabihf   --disable-pulseaudio --disable-esd --disable-video-mir --disable-video-wayland --disable-video-x11 --disable-video-opengl
+
+make -j 4
+sudo make install
+
+-- sdl image --
+cd
+wget https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.2.zip
+wget https://www.libsdl.org/projects/SDL_image/release/SDL2_image-2.0.5.zip
+unzip SDL2_image-2.0.2.zip
+cd SDL2_image-2.0.2/
+mkdir build && cd build
+../configure
+make -j4
+
+
+// Seem to be useless
+sudo ln /opt/vc/lib/libbrcmEGL.so    /opt/vc/lib/libEGL.so
+sudo ln /opt/vc/lib/libbrcmGLESv2.so /opt/vc/lib/libGLESv2.so
+sudo ln /opt/vc/lib/libbrcmGLESv2.so /opt/vc/lib/libGLES_CM.so
+sudo ln /opt/vc/lib/libbrcmGLESv2.so /opt/vc/lib/libGLESv1_CM.so
+
+sudo apt-get install libjpeg8 -y
+sudo apt-get install mpc	-y
+sudo apt-get install mpd -y
+
+sudo apt-get install mpd mpc libjpeg8 -y 
+sudo apt-get install pulseaudio pulseaudio-module-zeroconf alsa-utils avahi-daemon -y
+sudo apt-get install pavucontrol -y
+sudo apt-get install lame -y
+sudo apt-get install imagemagick -y
+
+ convert coverOrig.jpg  -resize 200x200\> cover.jpg
+
+sudo modprobe snd-bcm2835 
+
+mkdir /home/pi/projects/mpd/
+sudo systemctl stop mpd
+mpd --no-daemon --stdout --verbose
+
+
+vncserver -screen  1 1920x1080x16
+
+
+https://github.com/guussie/PiDS/wiki/09.-How-to-make-various-DACs-work
+ 
+ 
+kill `ps aux |grep Baemon |grep -v grep |cut -c 9-15`
+kill `ps aux |grep Boom  |grep -v grep|cut -c 9-15`
+ 
+sudo ln -s /usr/lib/arm-linux-gnueabihf/libsndio.so.7.0 /usr/lib/arm-linux-gnueabihf/libsndio.so.6.1
+  
+ 
+ https://connect.deezer.com/oauth/auth.php?app_id=302584&redirect_uri=http://www.example.com&perms=basic_access,email,offline_access
+ https://connect.deezer.com/oauth/access_token.php?app_id=302584&secret=fe1e85c70abd04995690173612c93757&code=fra9d00d760a345bffd171b422b93012
+ 
